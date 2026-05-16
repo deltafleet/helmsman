@@ -1,0 +1,4 @@
+interface:
+  display_name: "Helmsman Charting"
+  short_description: "Clarify intent and lock route"
+  default_prompt: "Use $helmsman-charting to clarify this request and produce a route card before autonomy."

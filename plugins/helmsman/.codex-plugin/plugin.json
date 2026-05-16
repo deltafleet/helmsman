@@ -1,0 +1,25 @@
+{
+  "name": "helmsman",
+  "version": "0.2.0",
+  "description": "Helmsman workflow protocol for charting, evidence-backed autonomous delivery, verification, and closeout memory.",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Helmsman",
+    "shortDescription": "Helmsman workflow protocol for disciplined Codex agent work",
+    "longDescription": "Use Helmsman to clarify routes, gather Charting-owned evidence, run Autopilot strategy and blueprint loops, verify against scenarios, and preserve reusable closeout memory through Codex skills.",
+    "developerName": "Deltafleet",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Use Helmsman to chart this task and gather needed evidence before implementation.",
+      "Run Helmsman Autopilot after the route and evidence are ready.",
+      "Verify this delivery against the original Helmsman route and close it out."
+    ],
+    "brandColor": "#0F766E",
+    "screenshots": []
+  }
+}

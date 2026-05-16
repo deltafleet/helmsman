@@ -1,0 +1,19 @@
+{
+  "name": "helmsman",
+  "version": "0.2.0",
+  "description": "Helmsman workflow protocol for charting, evidence-backed autonomous delivery, verification, and closeout memory.",
+  "author": {
+    "name": "Deltafleet",
+    "url": "https://github.com/deltafleet"
+  },
+  "homepage": "https://github.com/deltafleet/helmsman#readme",
+  "repository": "https://github.com/deltafleet/helmsman",
+  "license": "MIT",
+  "keywords": [
+    "agent-workflow",
+    "skills",
+    "codex",
+    "claude-code",
+    "project-intelligence"
+  ]
+}

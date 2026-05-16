@@ -1,0 +1,4 @@
+interface:
+  display_name: "Helmsman Autopilot"
+  short_description: "Run the internal strategy-blueprint-audit-execute spine"
+  default_prompt: "Use $helmsman-autopilot to run the locked route through strategy, blueprint, hardening, audit, execution or repair artifacts."

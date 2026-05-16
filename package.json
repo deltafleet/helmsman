@@ -1,0 +1,73 @@
+{
+  "name": "@deltafleet/helmsman",
+  "version": "0.2.0",
+  "description": "Helmsman protocol assets and deterministic helper toolbelt for Codex agent workflows.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "helmsman": "bin/helmsman.mjs"
+  },
+  "files": [
+    "bin/",
+    "scripts/",
+    "plugins/helmsman/",
+    "skills/",
+    "SKILL.md",
+    "docs/distribution.md",
+    "docs/open-source-operations.md",
+    "docs/helmsman-protocol.md",
+    "docs/map-schema.md",
+    "docs/release-guards.md",
+    "README.md",
+    "README.ko.md",
+    "LICENSE",
+    "CODE_OF_CONDUCT.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    ".agents/plugins/marketplace.json",
+    ".claude-plugin/marketplace.json"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deltafleet/helmsman.git"
+  },
+  "bugs": {
+    "url": "https://github.com/deltafleet/helmsman/issues"
+  },
+  "homepage": "https://github.com/deltafleet/helmsman#readme",
+  "packageManager": "bun@1.3.13",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "bun tsc --noEmit",
+    "check:helmsman": "bun scripts/check-helmsman.mjs",
+    "build:plugin": "bun scripts/build-plugin.mjs",
+    "verify:plugin": "bun run build:plugin && bun scripts/verify-plugin.mjs",
+    "verify:version": "bun scripts/verify-version-consistency.mjs",
+    "verify:installed-plugin": "bun scripts/verify-installed-plugin.mjs",
+    "verify:ci": "bun scripts/verify-ci.mjs",
+    "prepack": "bun run build:plugin && bun run verify:plugin && bun run verify:version",
+    "install:plugin": "bun scripts/install-plugin.mjs",
+    "validate:skill-session": "bun scripts/validate-skill-session.mjs",
+    "render:skill-status": "bun scripts/render-skill-status.mjs",
+    "scaffold:skill-artifact": "bun scripts/scaffold-skill-artifact.mjs",
+    "render:plugin-status": "bun scripts/render-plugin-status.mjs",
+    "fetch:skill-memory": "bun scripts/fetch-skill-memory.mjs",
+    "compile:skill-memory": "bun scripts/compile-skill-memory.mjs",
+    "audit:removed-surfaces": "bun scripts/audit-removed-surfaces.mjs",
+    "install:skills": "bun scripts/install-helmsman-skills.mjs",
+    "verify:helmsman": "bun scripts/verify-helmsman.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "bun-types": "^1.3.12",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=20.11.0"
+  }
+}

@@ -1,0 +1,12 @@
+node_modules/
+# Helmsman owns this project root. It contains product memory plus session
+# artifacts, so keep it out of repository commits by default.
+.helmsman/
+docs/spec/
+.omx/
+*.log
+*.sqlite
+
+# Local Codex execution profiles and transcripts are evidence inputs, not source.
+docs/private/
+private/
