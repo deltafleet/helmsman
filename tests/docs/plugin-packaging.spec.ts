@@ -11,6 +11,11 @@ const execFileAsync = promisify(execFile);
 const ROOT = process.cwd();
 const PLUGIN = join(ROOT, "plugins/helmsman");
 
+async function readPackageVersion() {
+  const packageJson = JSON.parse(await readFile(join(ROOT, "package.json"), "utf8"));
+  return packageJson.version;
+}
+
 async function runScript(script: string, args: string[] = [], options = {}) {
   return execFileAsync(process.execPath, [script, ...args], { cwd: ROOT, ...options });
 }
@@ -264,7 +269,23 @@ describe("Codex plugin packaging", () => {
     expect(rootSkill).toContain("name: helmsman");
     expect(rootSkill).toContain("Helmsman protocol workspace");
     expect(rootSkill).toContain("does not install Codex custom agents");
+    expect(rootSkill).toContain("research-index.md");
+    expect(rootSkill).toContain("research/");
     expect(rootSkill).toContain("references/release-guards.md");
+
+    const chartingSkill = await readFile(
+      join(PLUGIN, "skills/helmsman-charting/SKILL.md"),
+      "utf8",
+    );
+    const routeTemplate = await readFile(
+      join(PLUGIN, "skills/helmsman-charting/templates/route-card.md"),
+      "utf8",
+    );
+    expect(chartingSkill).toContain("Parallel research is the default");
+    expect(chartingSkill).toContain("host-neutral research worker packets");
+    expect(routeTemplate).toContain("Parallel research posture:");
+    expect(routeTemplate).toContain("Research worker packets:");
+    expect(routeTemplate).toContain("Lead-only lanes:");
   });
 
   test("repository marketplace descriptor exposes the generated Helmsman plugin", async () => {
@@ -322,7 +343,15 @@ describe("Codex plugin packaging", () => {
       "skills/helmsman-charting/templates/verification-scenarios.md",
       "skills/helmsman-charting/templates/resume-report-template.md",
       "skills/helmsman-charting/templates/route-card.md",
+      "skills/helmsman-charting/templates/charting-loop.md",
+      "skills/helmsman-charting/templates/question-bundles.md",
+      "skills/helmsman-charting/templates/native-chat-transcript.jsonl",
+      "skills/helmsman-charting/templates/memory-scan.md",
+      "skills/helmsman-charting/templates/research-index.md",
+      "skills/helmsman-charting/templates/research.md",
+      "skills/helmsman-charting/templates/worker-packets.md",
       "skills/helmsman-charting/templates/evidence.md",
+      "skills/helmsman-charting/roles/researcher.md",
       "skills/helmsman-autopilot/templates/director-blueprint.md",
       "skills/helmsman-autopilot/phases/strategy.md",
       "skills/helmsman-autopilot/roles/director.md",
@@ -560,6 +589,8 @@ describe("Codex plugin packaging", () => {
     expect(parsed.dryRun).toBe(true);
     expect(parsed.pluginDir).toBe(join(tmpdir, "plugins/helmsman"));
     expect(parsed.marketplacePath).toBe(join(tmpdir, ".agents/plugins/marketplace.json"));
+    expect(parsed.codexInstall.requested).toBe(true);
+    expect(parsed.plannedWrites).toContain("Codex plugin cache/config");
     expect(parsed.marketplaceEntry).toMatchObject({
       name: "helmsman",
       source: {
@@ -664,6 +695,7 @@ describe("Codex plugin packaging", () => {
   test("npm CLI doctor reports npm latest updates without mutating install state", async ({
     tmpdir,
   }) => {
+    const version = await readPackageVersion();
     const fake = await writeFakeCodex(tmpdir);
     await runCli(["install", "--json"], {
       env: fake.env,
@@ -686,7 +718,7 @@ describe("Codex plugin packaging", () => {
       expect(parsed.latestCheck).toMatchObject({
         checked: true,
         packageName: "@deltafleet/helmsman",
-        installedVersion: "0.2.0",
+        installedVersion: version,
         latestVersion: "9.9.9",
         updateAvailable: true,
         relation: "behind",
@@ -1195,6 +1227,7 @@ describe("Codex plugin packaging", () => {
   test("package script verifies a home-installed plugin against the generated payload", async ({
     tmpdir,
   }) => {
+    const version = await readPackageVersion();
     const fake = await writeFakeCodex(tmpdir);
     await execFileAsync(process.execPath, ["run", "install:plugin", "--", "--target-home", "--force", "--codex-install"], {
       cwd: ROOT,
@@ -1209,10 +1242,39 @@ describe("Codex plugin packaging", () => {
     expect(stdout).toContain(
       `marketplace entry verified: ${join(tmpdir, ".agents/plugins/marketplace.json")}`,
     );
-    expect(stdout).toContain(`Codex plugin cache verified: ${join(tmpdir, ".codex/plugins/cache/local/helmsman/0.2.0")}`);
+    expect(stdout).toContain(`Codex plugin cache verified: ${join(tmpdir, ".codex/plugins/cache/local/helmsman", version)}`);
     expect(stdout).toContain(`Codex plugin enabled: ${join(tmpdir, ".codex/config.toml")}`);
+    expect(stdout).toContain(
+      `plugin payload matches: ${join(tmpdir, "plugins/helmsman")}`,
+    );
     expect(stdout).toContain("plugin payload matches: plugins/helmsman");
     expect(stdout).toContain(`plugin verify pass: ${join(tmpdir, "plugins/helmsman")}`);
+  });
+
+  test("installed plugin verifier rejects stale Codex cache payload", async ({
+    tmpdir,
+  }) => {
+    const version = await readPackageVersion();
+    const fake = await writeFakeCodex(tmpdir);
+    await execFileAsync(process.execPath, ["run", "install:plugin", "--", "--target-home", "--force"], {
+      cwd: ROOT,
+      env: fake.env,
+    });
+
+    const cacheDir = join(tmpdir, ".codex/plugins/cache/local/helmsman", version);
+    const skillPath = join(cacheDir, "skills/helmsman/SKILL.md");
+    const skill = await readFile(skillPath, "utf8");
+    await writeFile(skillPath, `${skill}\n\nCodex cache drift marker.\n`);
+    await refreshPayloadManifestEntry(cacheDir, "skills/helmsman/SKILL.md");
+
+    await expect(
+      execFileAsync(process.execPath, ["run", "verify:installed-plugin"], {
+        cwd: ROOT,
+        env: fake.env,
+      }),
+    ).rejects.toMatchObject({
+      stderr: expect.stringContaining("plugin payload differs from compare target"),
+    });
   });
 
   test("plugin status renderer reports a ready installed marketplace payload without writes", async ({
@@ -1251,8 +1313,38 @@ describe("Codex plugin packaging", () => {
         configEnabled: true,
         installed: true,
       },
+      codexCacheComparison: {
+        matches: true,
+      },
       blockers: [],
     });
+  });
+
+  test("plugin status renderer reports stale Codex cache payload", async ({
+    tmpdir,
+  }) => {
+    const version = await readPackageVersion();
+    const fake = await writeFakeCodex(tmpdir);
+    await execFileAsync(process.execPath, ["run", "install:plugin", "--", "--target-home", "--force"], {
+      cwd: ROOT,
+      env: fake.env,
+    });
+
+    const cacheDir = join(tmpdir, ".codex/plugins/cache/local/helmsman", version);
+    const skillPath = join(cacheDir, "skills/helmsman/SKILL.md");
+    const skill = await readFile(skillPath, "utf8");
+    await writeFile(skillPath, `${skill}\n\nCodex cache drift marker.\n`);
+    await refreshPayloadManifestEntry(cacheDir, "skills/helmsman/SKILL.md");
+
+    const { stdout } = await execFileAsync(process.execPath, ["run", "render:plugin-status", "--", "--json"], {
+      cwd: ROOT,
+      env: fake.env,
+    });
+
+    const parsed = JSON.parse(stdout);
+    expect(parsed.ready).toBe(false);
+    expect(parsed.codexCacheComparison.matches).toBe(false);
+    expect(parsed.blockers).toContain("Codex plugin cache differs from installed plugin payload");
   });
 
   test("plugin status renderer exposes stale marketplace wiring without mutating it", async ({

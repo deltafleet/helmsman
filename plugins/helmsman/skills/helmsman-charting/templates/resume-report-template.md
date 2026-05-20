@@ -9,6 +9,14 @@ complete | partial | blocked
 ## Route Progress
 - <criterion advanced>
 
+## Charting Loop State
+- Last cycle:
+- Last question bundle:
+- Last memory scan judgment:
+- Last research lanes:
+- Latest sharpness check:
+- Next required loop action:
+
 ## Work Completed
 - <file, command, or artifact>
 

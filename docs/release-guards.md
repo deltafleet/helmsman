@@ -26,7 +26,7 @@ printf '//registry.npmjs.org/:_authToken=%s\n' "$NPM_TOKEN" > "$tmpnpmrc"
 NPM_CONFIG_USERCONFIG="$tmpnpmrc" npm whoami
 NPM_CONFIG_USERCONFIG="$tmpnpmrc" npm publish --access public
 rm -f "$tmpnpmrc"
-git tag v0.2.0
+git tag v0.3.0
 git push origin main --tags
 ```
 

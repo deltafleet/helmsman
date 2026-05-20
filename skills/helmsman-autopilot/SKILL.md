@@ -19,6 +19,8 @@ Read:
 
 - `route-card.md`
 - `decision-log.md`
+- `research-index.md`
+- `research/*.md`
 - `evidence/*.md`
 - existing `worker-packets.md`
 - relevant product files
@@ -80,7 +82,7 @@ Autopilot is the public skill. The downstream work is split into internal stages
 
 | Stage | Read | Write | Gate |
 | --- | --- | --- | --- |
-| `strategy` | `route-card.md`, `decision-log.md`, `evidence/*.md` | `strategy-samples.md` | independent options are concrete or explicitly skipped as simple work |
+| `strategy` | `route-card.md`, `decision-log.md`, `research-index.md`, `research/*.md`, `evidence/*.md` | `strategy-samples.md` | independent options are concrete or explicitly skipped as simple work |
 | `blueprint` | route, evidence, strategy samples | `director-blueprint.md`, `plan.md` | work items name owners, exact scope, dependencies, evidence, and scenario links |
 | `hardening` | full blueprint and plan | `hardening.md` | decision is `lock`, `continue`, or `revise` with cross-section findings |
 | `audit` | route, evidence, blueprint, hardening | `audit.md` | verdict is `revise` or `proceed` |

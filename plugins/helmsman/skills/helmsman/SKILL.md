@@ -69,6 +69,12 @@ Create or reuse a session directory under `.helmsman/sessions/`:
   resume-report-template.md
   chart.md
   route-card.md
+  charting-loop.md
+  question-bundles.md
+  memory-scan.md
+  research-index.md
+  worker-packets.md
+  research/
   worker-packets.md
   agents.json
   evidence/
@@ -90,6 +96,8 @@ Use `.helmsman/HELMSMAN.md` only for promoted durable project memory. A top-leve
 - Do not require a separate UI surface. Ask necessary questions in the native conversation unless the user asks for a separate question surface.
 - Do not treat chat history, worker liveness, pane exit, or task-list appearance as completion.
 - Do not implement before Charting records a route card with Aperture Bundles, Research Lane Contract, Decision Bundles, scope, non-goals, risks, success criteria, and verification scenarios.
+- Charting research uses one topic-bound research worker per independent lane, with at most 6 active research lanes unless the user explicitly approves more.
+- Every Charting research lane must land in `research-index.md` and one `research/<slug>.md` artifact, or the route card must record a concrete lead-only or dropped-lane reason.
 - Do not spawn workers until their packet names the mission, allowed write scope, required artifact, done criteria, and forbidden actions.
 - If user approval for subagents/workers is explicit, spawn workers through the available agent tooling. Otherwise write worker packets for the user or lead agent to launch.
 - Before moving stages, run a gate check by rereading the current artifact set against the stage exit criteria.
@@ -121,8 +129,9 @@ bun run verify:helmsman
 bun run build:plugin
 bun run verify:plugin
 bun run validate:skill-session -- .helmsman/sessions/<session-id> --stage charting|research|autopilot|verify|retro
+bun run validate:native-goal -- .helmsman/goals/<goal-id>
 bun run render:skill-status -- .helmsman/sessions/<session-id>
-bun run scaffold:skill-artifact -- .helmsman/sessions/<session-id> --artifact goal|goal-charter|stop-conditions|verification-scenarios|resume-report-template|route-card|plan|strategy-samples|director-blueprint|hardening|audit|execution-report|verification|retro
+bun run scaffold:skill-artifact -- .helmsman/sessions/<session-id> --artifact goal|goal-charter|stop-conditions|verification-scenarios|resume-report-template|route-card|charting-loop|question-bundles|memory-scan|research-index|worker-packets|research|evidence|plan|strategy-samples|director-blueprint|hardening|audit|execution-report|verification|retro
 bun run fetch:skill-memory -- .helmsman/wiki --index
 bun run fetch:skill-memory -- .helmsman/wiki --doc <relative-wiki-page.md>
 bun run render:plugin-status
@@ -133,6 +142,9 @@ bun run audit:removed-surfaces
 For normal workflow operation, the most useful helpers are:
 
 - `scaffold:skill-artifact -- --artifact goal|goal-charter|stop-conditions|verification-scenarios|resume-report-template` for preparing native goal documents.
+- `scaffold:skill-artifact -- --artifact charting-loop|question-bundles|memory-scan` for native `/goal` Charting loop continuity.
+- `validate:native-goal` for proving a filled native `/goal` workspace preserves the Charting loop contract.
+- `scaffold:skill-artifact -- --artifact research-index|worker-packets|research` for Charting research artifacts when a lane set is selected.
 - `validate:skill-session` for the current session artifact gate.
 - `render:skill-status` for a read-only status projection.
 - `scaffold:skill-artifact` for template creation only.

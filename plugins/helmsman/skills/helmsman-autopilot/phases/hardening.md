@@ -5,6 +5,8 @@ Use before audit when the plan touches shared contracts, cross-file behavior, us
 ## Inputs
 
 - `route-card.md`
+- `research-index.md`
+- `research/*.md`
 - `director-blueprint.md`
 - `plan.md`
 - current source files or artifacts named by the plan

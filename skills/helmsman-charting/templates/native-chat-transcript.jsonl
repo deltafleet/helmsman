@@ -1,0 +1,2 @@
+{"id":"assistant-c001-q1","role":"assistant","surface":"native-chat","text":"Question: <rendered native-chat question text including every Q, A/B/C option, recommendation marker, reasons, tradeoffs, route effects, and free-form override>"}
+{"id":"user-c001-answer","role":"user","surface":"native-chat","text":"<verbatim native-chat user answer or concise transcript excerpt that matches User answer in question-bundles.md>"}

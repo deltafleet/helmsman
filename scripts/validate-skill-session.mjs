@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { readdir, readFile } from "node:fs/promises";
 import { basename, join } from "node:path";
+import { validateNativeQuestionTranscript } from "./lib/native-question-transcript.mjs";
 
 const STAGES = ["charting", "research", "autopilot", "verify", "retro"];
 const MAP_STAGES = [...STAGES, "closed"];
@@ -145,6 +146,57 @@ function extractSection(body, heading) {
   return (next ? rest.slice(0, next.index) : rest).trim();
 }
 
+function extractBundleSections(body) {
+  const matches = [
+    ...body.matchAll(/^##\s+(C-\d{3})\s+(Aperture|Decision)\s+Question Bundle\s*$/gim),
+  ];
+  return matches.map((match, index) => {
+    const start = match.index ?? 0;
+    const next = matches[index + 1];
+    return {
+      id: match[1].toUpperCase(),
+      type: match[2].toLowerCase(),
+      body: body.slice(start, next?.index ?? body.length).trim(),
+    };
+  });
+}
+
+function extractQuestionSections(bundle) {
+  const matches = [...bundle.matchAll(/^###\s+(Q\d+)\s*$/gim)];
+  return matches.map((match, index) => {
+    const start = match.index ?? 0;
+    const next = matches[index + 1];
+    return {
+      id: match[1].toUpperCase(),
+      body: bundle.slice(start, next?.index ?? bundle.length).trim(),
+    };
+  });
+}
+
+function fieldValue(body, label) {
+  return (
+    body.match(new RegExp(`^\\s*${escapeRegExp(label)}\\s*(.+)$`, "im"))?.[1]?.trim() || ""
+  );
+}
+
+function bundleReview(bundle) {
+  return fieldValue(bundle, "Bundle review:").toLowerCase();
+}
+
+function surfaceStatus(bundle) {
+  return fieldValue(bundle, "Surface status:").toLowerCase();
+}
+
+function optionBlock(question, option) {
+  const lines = question.split("\n");
+  const start = lines.findIndex((line) => new RegExp(`^${option}\\.\\s+`, "i").test(line));
+  if (start === -1) return "";
+  const end = lines.findIndex(
+    (line, index) => index > start && /^(?:[ABC]\.\s+|Free-form answers)/i.test(line),
+  );
+  return lines.slice(start, end === -1 ? lines.length : end).join("\n");
+}
+
 function inferStage(contractBody, presentFiles) {
   const match = contractBody.match(/^Current stage:\s*([a-z-]+)/im);
   if (match && STAGES.includes(match[1])) return match[1];
@@ -153,6 +205,7 @@ function inferStage(contractBody, presentFiles) {
     ["retro.md", "retro"],
     ["verification.md", "verify"],
     ["plan.md", "autopilot"],
+    ["research", "research"],
     ["evidence", "research"],
     ["route-card.md", "charting"],
   ]) {
@@ -248,6 +301,135 @@ async function validateContract(sessionDir) {
   return body;
 }
 
+async function validateNativeQuestionSurface(rel, bundleId, bundle, questions, sessionDir) {
+  requireHeadings(`${rel} ${bundleId}`, bundle, ["Native Question Surface"]);
+  requireFieldValues(`${rel} ${bundleId}`, bundle, [
+    "Surface status:",
+    "Rendered in native chat:",
+    "Rendered message reference:",
+    "Native transcript evidence:",
+    "Covered questions:",
+    "Covered options:",
+    "Recommendation shown:",
+    "Reasons shown:",
+    "Tradeoffs shown:",
+    "Route effects shown:",
+    "Free-form override shown:",
+    "User answer source:",
+    "User answer evidence:",
+  ]);
+
+  const status = surfaceStatus(bundle);
+  if (!["not-rendered", "rendered", "answered", "not-needed"].includes(status)) {
+    fail(`${rel} ${bundleId} has invalid Surface status '${fieldValue(bundle, "Surface status:")}'`);
+  }
+
+  const review = bundleReview(bundle);
+  const mustBeRendered = /\b(blocked|answered|lock-ready|continue)\b/.test(review);
+  if (mustBeRendered && status === "not-rendered") {
+    fail(`${rel} ${bundleId} is ${review} but native question surface is not-rendered`);
+  }
+  if (["rendered", "answered"].includes(status)) {
+    for (const [label, expected] of [
+      ["Rendered in native chat:", "yes"],
+      ["Recommendation shown:", "yes"],
+      ["Reasons shown:", "yes"],
+      ["Tradeoffs shown:", "yes"],
+      ["Route effects shown:", "yes"],
+      ["Free-form override shown:", "yes"],
+    ]) {
+      const actual = fieldValue(bundle, label).toLowerCase();
+      if (actual !== expected) fail(`${rel} ${bundleId} ${label} must be ${expected}`);
+    }
+    const coveredOptions = fieldValue(bundle, "Covered options:");
+    if (!/\bA\/B\/C\b/i.test(coveredOptions)) {
+      fail(`${rel} ${bundleId} Covered options must include A/B/C`);
+    }
+  }
+
+  await validateNativeQuestionTranscript({
+    rootDir: sessionDir,
+    rel,
+    bundleId,
+    status,
+    nativeTranscriptEvidence: fieldValue(bundle, "Native transcript evidence:"),
+    userAnswerEvidence: fieldValue(bundle, "User answer evidence:"),
+    questions,
+  });
+}
+
+function validateQuestionOptionShape(rel, bundleId, question) {
+  requireLabels(`${rel} ${bundleId} ${question.id}`, question.body, [
+    "Question:",
+    "Why this matters:",
+    "Free-form answers are welcome",
+    "User answer:",
+    "Route effect:",
+  ]);
+
+  let recommendedCount = 0;
+  for (const option of ["A", "B", "C"]) {
+    const block = optionBlock(question.body, option);
+    if (!block) fail(`${rel} ${bundleId} ${question.id} missing option ${option}`);
+    if (/\(Recommended\)/i.test(block)) recommendedCount += 1;
+    for (const label of ["Reason:", "Tradeoff:", "What this answer changes:"]) {
+      if (!new RegExp(`^\\s*${escapeRegExp(label)}\\s*\\S+`, "im").test(block)) {
+        fail(`${rel} ${bundleId} ${question.id} option ${option} missing '${label}'`);
+      }
+    }
+  }
+
+  if (recommendedCount !== 1) {
+    fail(`${rel} ${bundleId} ${question.id} must mark exactly one option as (Recommended)`);
+  }
+}
+
+async function validateQuestionBundles(sessionDir, route) {
+  const body = await readRequired(sessionDir, "question-bundles.md");
+  rejectPlaceholders("question-bundles.md", body);
+  const bundles = extractBundleSections(body);
+  if (bundles.length === 0) fail("question-bundles.md has no question bundles");
+
+  const hasAperture = bundles.some((bundle) => bundle.type === "aperture");
+  if (!hasAperture) fail("question-bundles.md missing Aperture Question Bundle");
+
+  for (const bundle of bundles) {
+    requireFieldValues(`question-bundles.md ${bundle.id}`, bundle.body, [
+      "Bundle type:",
+      "Bundle review:",
+    ]);
+    const questions = extractQuestionSections(bundle.body);
+    await validateNativeQuestionSurface(
+      "question-bundles.md",
+      bundle.id,
+      bundle.body,
+      questions,
+      sessionDir,
+    );
+
+    if (surfaceStatus(bundle.body) === "not-needed") continue;
+    if (questions.length === 0) fail(`question-bundles.md ${bundle.id} has no questions`);
+    if (questions.length > 4) fail(`question-bundles.md ${bundle.id} has more than 4 questions`);
+    for (const question of questions) {
+      validateQuestionOptionShape("question-bundles.md", bundle.id, question);
+    }
+  }
+
+  const nextSkill = fieldValue(route, "Next skill:").toLowerCase();
+  const apertureNative = fieldValue(route, "Aperture native surface:").toLowerCase();
+  const decisionNative = fieldValue(route, "Decision native surface:").toLowerCase();
+  if (nextSkill === "helmsman-autopilot") {
+    if (!/\b(answered|rendered|not-needed)\b/.test(apertureNative)) {
+      fail("route-card.md Aperture native surface must be rendered or answered before Autopilot handoff");
+    }
+    if (!/\b(answered|rendered|not-needed)\b/.test(decisionNative)) {
+      fail(
+        "route-card.md Decision native surface must be rendered, answered, or not-needed before Autopilot handoff",
+      );
+    }
+  }
+}
+
 async function validateCharting(sessionDir) {
   await validateMap(sessionDir);
   const chart = await readRequired(sessionDir, "chart.md");
@@ -274,7 +456,16 @@ async function validateCharting(sessionDir) {
     "Bundle Density Read:",
     "Aperture bundle status:",
     "Research lanes:",
+    "Parallel research posture:",
+    "Research worker packets:",
+    "Lead-only lanes:",
+    "Research index:",
+    "Research artifacts:",
+    "Max active lanes:",
+    "Topic-to-artifact map:",
     "Decision bundle status:",
+    "Aperture native surface:",
+    "Decision native surface:",
     "Next skill:",
     "Input artifact:",
     "Already satisfied:",
@@ -285,37 +476,80 @@ async function validateCharting(sessionDir) {
   if (extractScenarioIds(route).length === 0) {
     fail("route-card.md missing verification scenario id");
   }
+  await validateQuestionBundles(sessionDir, route);
   rejectPlaceholders("route-card.md", route);
 }
 
 async function validateResearch(sessionDir) {
-  const evidenceDir = join(sessionDir, "evidence");
-  let files = [];
-  try {
-    files = (await readdir(evidenceDir)).filter((file) => file.endsWith(".md"));
-  } catch (error) {
-    if (error && error.code === "ENOENT") fail("evidence/ is missing");
-    throw error;
-  }
-  if (files.length === 0) fail("evidence/ has no markdown evidence files");
-  for (const file of files) {
-    const rel = `evidence/${file}`;
-    const body = await readRequired(sessionDir, rel);
-    requireHeadings(rel, body, [
+  const researchIndex = await readOptional(sessionDir, "research-index.md");
+  if (researchIndex !== null) {
+    requireFieldValues("research-index.md", researchIndex, [
+      "Max active research lanes:",
+      "Launch posture:",
+    ]);
+    requireMarkdownTableColumns("research-index.md", researchIndex, [
+      "Slug",
       "Question",
       "Lane Type",
+      "Owner",
+      "Status",
+      "Artifact",
       "Sources Checked",
-      "Observations",
-      "Inferences",
-      "Uncertainty",
       "Decision Impact",
-      "Route Changes Required",
-      "Recommended Next Step",
+      "Open Uncertainty",
     ]);
-    rejectPlaceholders(rel, body);
+    rejectPlaceholders("research-index.md", researchIndex);
+  }
+
+  const researchDir = join(sessionDir, "research");
+  let researchFiles = [];
+  try {
+    researchFiles = (await readdir(researchDir)).filter((file) => file.endsWith(".md"));
+  } catch (error) {
+    if (!error || error.code !== "ENOENT") throw error;
+  }
+  for (const file of researchFiles) {
+    await validateResearchArtifact(sessionDir, `research/${file}`);
+  }
+
+  const evidenceDir = join(sessionDir, "evidence");
+  let evidenceFiles = [];
+  try {
+    evidenceFiles = (await readdir(evidenceDir)).filter((file) => file.endsWith(".md"));
+  } catch (error) {
+    if (error && error.code === "ENOENT" && researchFiles.length === 0) {
+      fail("research/ or evidence/ is missing");
+    }
+    if (error && error.code === "ENOENT") {
+      evidenceFiles = [];
+    } else {
+      throw error;
+    }
+  }
+  if (researchFiles.length === 0 && evidenceFiles.length === 0) {
+    fail("research/ and evidence/ have no markdown research files");
+  }
+  for (const file of evidenceFiles) {
+    await validateResearchArtifact(sessionDir, `evidence/${file}`);
   }
   await validateOptionalWorkerPackets(sessionDir);
   await validateOptionalJson(sessionDir, "agents.json");
+}
+
+async function validateResearchArtifact(sessionDir, rel) {
+  const body = await readRequired(sessionDir, rel);
+  requireHeadings(rel, body, [
+    "Question",
+    "Lane Type",
+    "Sources Checked",
+    "Observations",
+    "Inferences",
+    "Uncertainty",
+    "Decision Impact",
+    "Route Changes Required",
+    "Recommended Next Step",
+  ]);
+  rejectPlaceholders(rel, body);
 }
 
 async function validateAutopilot(sessionDir) {

@@ -1,6 +1,6 @@
 # Map Schema
 
-`map.json` is a read-only status projection for a Helmsman session under `.helmsman/sessions/<session-id>/`. It is not workflow authority. The authoritative artifacts remain `contract.md`, `route-card.md`, `evidence/*.md`, `plan.md`, `verification.md`, and `retro.md`.
+`map.json` is a read-only status projection for a Helmsman session under `.helmsman/sessions/<session-id>/`. It is not workflow authority. The authoritative artifacts remain `contract.md`, `route-card.md`, `research-index.md`, `research/*.md`, `evidence/*.md` when present, `plan.md`, `verification.md`, and `retro.md`.
 
 Required fields:
 

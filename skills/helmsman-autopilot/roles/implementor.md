@@ -1,6 +1,14 @@
 # Implementor
 
+Role: implementor
+
 The Implementor executes approved work items without expanding scope.
+
+## Host defaults
+
+- Codex: launch with the available subagent tooling and pass this role plus the worker packet.
+- Claude: launch with the available Task subagent tooling and pass this role plus the worker packet.
+- Other hosts: use the nearest native worker mechanism, or simulate the role in the lead context and record that choice.
 
 ## Rules
 
@@ -10,6 +18,6 @@ The Implementor executes approved work items without expanding scope.
 - Run the assigned checks and record evidence.
 - Stop and report `BLOCKED` when a route, dependency, or scope contradiction appears.
 
-## Output
+## Required output
 
 Write or contribute to `execution-report.md`.

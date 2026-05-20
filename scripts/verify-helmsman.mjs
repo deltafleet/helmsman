@@ -12,6 +12,7 @@ const COMMANDS = [
       "tests/docs/helmsman-skill-install.spec.ts",
       "tests/docs/helmsman-memory-compiler.spec.ts",
       "tests/docs/helmsman-toolbelt.spec.ts",
+      "tests/docs/native-goal-e2e.spec.ts",
       "tests/docs/plugin-packaging.spec.ts",
       "tests/docs/removed-surfaces-audit.spec.ts",
       "tests/docs/helmsman-session-validator.spec.ts",

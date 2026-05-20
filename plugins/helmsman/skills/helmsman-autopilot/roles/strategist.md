@@ -1,6 +1,14 @@
 # Strategist
 
+Role: strategist
+
 The Strategist creates independent approaches under the same locked mission.
+
+## Host defaults
+
+- Codex: launch with the available subagent tooling and pass this role plus the worker packet.
+- Claude: launch with the available Task subagent tooling and pass this role plus the worker packet.
+- Other hosts: use the nearest native worker mechanism, or simulate the role in the lead context and record that choice.
 
 ## Rules
 
@@ -11,6 +19,6 @@ The Strategist creates independent approaches under the same locked mission.
 - Mark assumptions explicitly.
 - Keep user-owned decisions out of recommendations.
 
-## Output
+## Required output
 
 Write or contribute to `strategy-samples.md`.

@@ -1,23 +1,23 @@
 {
   "schemaVersion": 1,
   "plugin": "helmsman",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "generatedBy": "scripts/build-plugin.mjs",
   "files": [
     {
       "path": ".claude-plugin/plugin.json",
       "bytes": 525,
-      "sha256": "b65f693b7b397183a8518b7b4f29886f61567a23aa235e047e003ef90890feaf"
+      "sha256": "2251cd0cb62f660c4149f52fbed8f0fe9f634a0f04eb85717f9f3546dab9ca24"
     },
     {
       "path": ".codex-plugin/plugin.json",
       "bytes": 1031,
-      "sha256": "9470c4a112f5da01e07f32e769ad965bd22285d091c1d820a630aaba33a0db1c"
+      "sha256": "bee1320afc5a7ba8e490df254d61ba7a8b9ff1f50648820c0b6dc404b78b8821"
     },
     {
       "path": "skills/helmsman-autopilot/SKILL.md",
-      "bytes": 9987,
-      "sha256": "dec891f7f25b4f28284a45fb96d5b7f340c76f94e50de47c528cbb5802be4688"
+      "bytes": 10065,
+      "sha256": "a711a4a48e3e922e0ecf37f9ade26457581b8f6f4a83a3ff2a51dded56880419"
     },
     {
       "path": "skills/helmsman-autopilot/agents/openai.yaml",
@@ -26,13 +26,13 @@
     },
     {
       "path": "skills/helmsman-autopilot/phases/audit.md",
-      "bytes": 819,
-      "sha256": "c29986752e0d55de35be1015aeee9dcba5d278cc6e961a7ab6bd53906ea3a7ca"
+      "bytes": 859,
+      "sha256": "a57bb6f78b0bd9597837ecdd5dc9d993dedf3241b60bc89ea86dce1d72d8d5ab"
     },
     {
       "path": "skills/helmsman-autopilot/phases/blueprint.md",
-      "bytes": 1133,
-      "sha256": "1d1da488ffb1527f19f761dfea0d47d208e2c9400114ce892dc87c3a1d23af1d"
+      "bytes": 1173,
+      "sha256": "c2db3ca7c20d514effabb685b2bda93ad48629651b45ca181ffb515ec7e9b442"
     },
     {
       "path": "skills/helmsman-autopilot/phases/execute.md",
@@ -41,38 +41,38 @@
     },
     {
       "path": "skills/helmsman-autopilot/phases/hardening.md",
-      "bytes": 903,
-      "sha256": "47d35704178b0deaf837f89a197aa9e168a55724fd7d04935dda9a45953b3ac4"
+      "bytes": 943,
+      "sha256": "e59526220ddd98b83fbb44274155f3119d125eb7750ece6b040d540edb78dc68"
     },
     {
       "path": "skills/helmsman-autopilot/phases/repair.md",
-      "bytes": 812,
-      "sha256": "860e14644fa38e0051f04691d66b0faaae0c6502664476abdc4531b325be137a"
+      "bytes": 852,
+      "sha256": "cbc1d46c4168e73e3b945a4c4bb950b4376b5c5e5fbe7ad66169217289d5bf7b"
     },
     {
       "path": "skills/helmsman-autopilot/phases/strategy.md",
-      "bytes": 936,
-      "sha256": "4a9ebe41f8e09409d5eb6cf1b2b2ab759a20e773b40ff311c8253d3b85aada8c"
+      "bytes": 976,
+      "sha256": "5a627d9e7afe74a9b1061105d411fdb28b2a1c3b72febfc9bc2fb003df128b45"
     },
     {
       "path": "skills/helmsman-autopilot/roles/auditor.md",
-      "bytes": 431,
-      "sha256": "5f40266c7ec7936c1dc97afd58d6d471b53a54954370f4138cc2ce2796753793"
+      "bytes": 791,
+      "sha256": "e8918c3b5c43360367eccae33d1c62bfc3f7d3037c109dd9190345b5dbeff8ee"
     },
     {
       "path": "skills/helmsman-autopilot/roles/director.md",
-      "bytes": 450,
-      "sha256": "f19c5e71b007baec7183f685e8c639e0fb6927c6960e7bd083d8480674f12e08"
+      "bytes": 820,
+      "sha256": "89f1713450fe67dcc7d5ad4660515c6f0fbb69b0d71d63bd0bbe7ffebefbe0c6"
     },
     {
       "path": "skills/helmsman-autopilot/roles/implementor.md",
-      "bytes": 423,
-      "sha256": "bf29a32187873f4920fbfca98a68545f5901760583a68faa607a83c0043bc014"
+      "bytes": 787,
+      "sha256": "e2a32a4b3f301c4e0d674ebf4a60d9e1c9bf29151455836f6558594196b989d2"
     },
     {
       "path": "skills/helmsman-autopilot/roles/strategist.md",
-      "bytes": 428,
-      "sha256": "dc190fedc812bb12f590c1d5ae9a03d16218f5c1f2c7f1050d534bded3eeb1b2"
+      "bytes": 791,
+      "sha256": "d6b8597ce832e2e649c45dd2c2f5ccc78865bf81f157a1b2fd8d33085895602d"
     },
     {
       "path": "skills/helmsman-autopilot/templates/audit.md",
@@ -96,8 +96,8 @@
     },
     {
       "path": "skills/helmsman-autopilot/templates/plan.md",
-      "bytes": 926,
-      "sha256": "279cbdecf23b963798db241ed635e7a764b466740dad45d6509f81e6e20d76fe"
+      "bytes": 961,
+      "sha256": "ecc00606e6d535e243d892515bcacdad951ff555d1badab863e2ebe7e31e6c3a"
     },
     {
       "path": "skills/helmsman-autopilot/templates/strategy-samples.md",
@@ -106,13 +106,23 @@
     },
     {
       "path": "skills/helmsman-charting/SKILL.md",
-      "bytes": 10552,
-      "sha256": "8945666c83c21f0b83a3515dac21a0416a7a30c6ea53c19a54c0806ef6b05df0"
+      "bytes": 16659,
+      "sha256": "2ff2c2ae57087dfdb06faaa340b862abe5137e3f73b5b4d4adca62f83f744f9c"
     },
     {
       "path": "skills/helmsman-charting/agents/openai.yaml",
       "bytes": 209,
       "sha256": "23f12d786a1fb66f94802b040765efac4a1e04e74c7a8031e701270d40d48576"
+    },
+    {
+      "path": "skills/helmsman-charting/roles/researcher.md",
+      "bytes": 1265,
+      "sha256": "83153af48f10b5b1c704030efe1f4009500c66f068acc0cd9fee4a75cd426acf"
+    },
+    {
+      "path": "skills/helmsman-charting/templates/charting-loop.md",
+      "bytes": 954,
+      "sha256": "d075b491a7a77552cc9a4152a54d8bda606a34fbe083d59dc4441b924a0673f0"
     },
     {
       "path": "skills/helmsman-charting/templates/evidence.md",
@@ -121,38 +131,68 @@
     },
     {
       "path": "skills/helmsman-charting/templates/goal-charter.md",
-      "bytes": 1442,
-      "sha256": "2c0a47c3d8f1ec97ce6a575b65325ef205d5c6ada86a933d9a42fa2f38d611ce"
+      "bytes": 2091,
+      "sha256": "f56b9594bcdfcb2fd27298029a98a2d1f6aed1cddb023e8cd67eb8b0a27018fc"
     },
     {
       "path": "skills/helmsman-charting/templates/goal.md",
-      "bytes": 1707,
-      "sha256": "937619fcb84dda72f539b447bfaeeef534c67bde93626ceb83f85ba6b76af925"
+      "bytes": 2699,
+      "sha256": "4d1bc9d8670938ed790bda8fc758d4acb230b66d9b0abd793f92df4d95e9964e"
+    },
+    {
+      "path": "skills/helmsman-charting/templates/memory-scan.md",
+      "bytes": 1336,
+      "sha256": "6cfad2b502cd31b44428170721f02c6d618067dcad118f5cdc71089bbb73c32f"
+    },
+    {
+      "path": "skills/helmsman-charting/templates/native-chat-transcript.jsonl",
+      "bytes": 426,
+      "sha256": "effa7e7b4008e1cf20596882df5e56e580f0c86751c9433b5dda7d63f03a391d"
+    },
+    {
+      "path": "skills/helmsman-charting/templates/question-bundles.md",
+      "bytes": 2267,
+      "sha256": "552761b115c8df890bb4a4a05e4756aab00e22c79593ace43a3e3d5372f76921"
+    },
+    {
+      "path": "skills/helmsman-charting/templates/research-index.md",
+      "bytes": 618,
+      "sha256": "cdf9b0f621b0f8e38cef6ec362ee4f98d14b4827e06784a9653e7303d042e5d4"
+    },
+    {
+      "path": "skills/helmsman-charting/templates/research.md",
+      "bytes": 677,
+      "sha256": "9b8893e71c165f88eb3845b2c89c851ddb6f8034673d33d751165a17a62c7255"
     },
     {
       "path": "skills/helmsman-charting/templates/resume-report-template.md",
-      "bytes": 484,
-      "sha256": "390e67ae7c215bc1719797d2611e173a38b0d390fc09ad48d4b55769f3021e89"
+      "bytes": 653,
+      "sha256": "84d08f62d676d8cc2d96744a865d1f9a7ac23af6070c2dd2d2e10af4c4728f2e"
     },
     {
       "path": "skills/helmsman-charting/templates/route-card.md",
-      "bytes": 1485,
-      "sha256": "9b2e5bafbdd0ae9aec712056be9e7e14d107787482b91d7038bd6e5fdc977990"
+      "bytes": 2315,
+      "sha256": "6389014cd532a6dddb6f70656265bc9a46ad5ae64f319989250443d07b4bcb82"
     },
     {
       "path": "skills/helmsman-charting/templates/stop-conditions.md",
-      "bytes": 601,
-      "sha256": "5fdeb268ba375dc462a17b63446b9e7071ca0b94380326099b6b505f5e099565"
+      "bytes": 925,
+      "sha256": "5913d10777f84ee4b50dc3c29179a148a805982f25a4c379c60573ab79840ab1"
     },
     {
       "path": "skills/helmsman-charting/templates/verification-scenarios.md",
-      "bytes": 516,
-      "sha256": "e44160ae62d67c4e2bed12fa6c2a3bb16e9926d55c52e0d810464594bdae48e1"
+      "bytes": 1166,
+      "sha256": "5f7630f266e0e2e421986dff316b784eba67068762724f3adcc1d87c7c8145c9"
+    },
+    {
+      "path": "skills/helmsman-charting/templates/worker-packets.md",
+      "bytes": 781,
+      "sha256": "00c5b181c334237ac52fc80e3113e666f2220366e53c367e63ddac848adde6c3"
     },
     {
       "path": "skills/helmsman-verify/SKILL.md",
-      "bytes": 3402,
-      "sha256": "8216c197470971649d39ddd7391b2e7f4c25ec9f94eb6e54af1ebc03897db140"
+      "bytes": 3476,
+      "sha256": "714295c604d521b87372aa001d4416fd85f6499804c6e840eb8b275f4d7a6c26"
     },
     {
       "path": "skills/helmsman-verify/agents/openai.yaml",
@@ -171,13 +211,13 @@
     },
     {
       "path": "skills/helmsman/SKILL.md",
-      "bytes": 9562,
-      "sha256": "8efb9912e930be5d1dca3e7882f96ae73e9912695dce20145928c5f71352f47d"
+      "bytes": 10538,
+      "sha256": "3354d9d8e7c808caeddefa7477b6f9b9988921a070b5b9dd27b52a0b4358b4ac"
     },
     {
       "path": "skills/helmsman/references/release-guards.md",
       "bytes": 2710,
-      "sha256": "9593da2117939caa92b12e7af17126e9f37bc9ba6050bf2e09aeb1c96ee8cb1e"
+      "sha256": "c668aba7d6c261369c768107c4ed11528818bd4e6b8f9b8ff0b59fb021c08241"
     }
   ]
 }

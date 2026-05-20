@@ -33,8 +33,8 @@ Helmsman makes those failures harder by forcing the work to leave evidence at th
 user intent
   -> aperture bundle
   -> research lane contract
-  -> targeted research
-  -> evidence
+  -> parallel targeted research
+  -> research index + artifacts
   -> decision bundle
   -> route lock
   -> route card
@@ -71,6 +71,14 @@ That split is a control device. The Lead reads a small, current contract at each
 
 Research is not a paragraph that justifies a choice after the fact. It is an input to the choice, and conceptually it belongs to Charting until the route is locked. Helmsman can split research into parallel source or domain lanes, then preserve the evidence so later agents can see what was known, what was uncertain, and why the route was chosen.
 
+### Spend Tokens Aggressively, But Accountably
+
+Helmsman is not designed around making one lead agent conserve tokens by doing everything alone. Good research often needs breadth, and breadth should happen in parallel when the questions are independent.
+
+The rule is: spend many useful model tokens in a short wall-clock window, but do not create orphaned tokens. Charting turns a broad research need into topic-bound lanes, gives each lane a host-neutral worker packet, launches the lanes in parallel when the host allows it, and requires every lane to write back to `research-index.md` and one `research/<slug>.md` artifact. The lead agent synthesizes the results after the workers return; it does not silently absorb parallelizable research just because it can read a few files itself.
+
+This makes token spend inspectable. A research lane is useful only when it has a route-changing question, a bounded source set, a required artifact, and a visible decision impact.
+
 ### A Plan Must Survive Attack
 
 The blueprint is not allowed to be a loose to-do list. It must describe ownership, dependencies, expected outputs, and verification scenarios clearly enough that independent auditors can attack it before implementation begins.
@@ -100,8 +108,8 @@ context, evidence, route lock     autonomous agent work              compounding
 intent
   -> aperture bundle     externalize the route angle before research
   -> research contract   name lanes to inspect and lanes to skip
-  -> research            targeted source/domain lanes before decisions harden
-  -> evidence            preserve source-backed facts before choice
+  -> research            parallel source/domain lanes before decisions harden
+  -> evidence            preserve source-backed facts in indexed research artifacts
   -> decision bundle     choose or approve the evidence-backed route
   -> route lock          freeze the choices that need user authority
   -> route card          define target, risks, success, scenarios
@@ -156,6 +164,9 @@ A serious workflow should create one session workspace:
   contract.md
   map.json
   route-card.md
+  research-index.md
+  worker-packets.md
+  research/
   evidence/
   strategy-samples.md
   director-blueprint.md
@@ -173,7 +184,7 @@ The operating rule is simple: artifacts hold state, the lead agent makes judgmen
 
 Helmsman's product direction is route-governed autonomy. The current distribution shape is skill-delivered.
 
-Helmsman is Charting-first. Charting owns the Always Aperture contract: every route starts with an Aperture Bundle, `Bundle Density Read` only sizes that bundle, and targeted Research is scoped by a Research Lane Contract before decisions harden. Autopilot owns the downstream spine after route lock: strategy samples, blueprinting, hardening, audit, worker coordination, implementation, and repair. Verify checks the delivery against route scenarios and leaves the closeout notes that future sessions can reuse. Artifacts hold durable workflow state. Workers are spawned only when useful and receive bounded packets with required outputs. Autopilot records the execution strategy (`inline`, `serial-workers`, `parallel-workers`, or `parked`), runs a file-to-work-item safety check before parallel workers, and treats worker lifecycle evidence as a phase gate rather than trusting worker liveness or self-report. Deterministic helpers scaffold templates, validate artifacts, render status, compile memory, and fetch explicitly selected wiki pages; they do not own workflow decisions.
+Helmsman is Charting-first. Charting owns the Always Aperture contract: every route starts with an Aperture Bundle, `Bundle Density Read` only sizes that bundle, and targeted Research is scoped by a Research Lane Contract before decisions harden. Parallel research is the default operating posture when lanes are independent: one topic-bound worker per lane, at most 6 active research lanes unless the user approves more, one `research/<slug>.md` result per active topic, and `research-index.md` as the coordination ledger. Autopilot owns the downstream spine after route lock: strategy samples, blueprinting, hardening, audit, worker coordination, implementation, and repair. Verify checks the delivery against route scenarios and leaves the closeout notes that future sessions can reuse. Artifacts hold durable workflow state. Workers are spawned only when useful and receive bounded packets with required outputs. Autopilot records the execution strategy (`inline`, `serial-workers`, `parallel-workers`, or `parked`), runs a file-to-work-item safety check before parallel workers, and treats worker lifecycle evidence as a phase gate rather than trusting worker liveness or self-report. Deterministic helpers scaffold templates, validate artifacts, render status, compile memory, and fetch explicitly selected wiki pages; they do not own workflow decisions.
 
 Distribution is deliberately outside the conceptual README. The short version is: the generated payload exposes skills to both Codex and Claude Code; the product contract remains the artifacts and workflow above. See [docs/distribution.md](docs/distribution.md) for install commands, host manifests, marketplace descriptors, and verification gates.
 
@@ -202,6 +213,8 @@ Before autonomous work begins, the route must be concrete enough to name the tar
 ### Parallel Research, Strategy, Audit, Execute
 
 Helmsman uses parallelism where independence creates value. During Charting, researchers can split source or domain lanes before a decision hardens. Strategists run same-role, same-mission independent samples after the route is locked and before the system commits to one plan. Auditors attack the blueprint independently so one reviewer does not define the entire risk model. Implementors run in dependency-aware waves, so independent tracks can move together while blocked work waits its turn.
+
+Charting research has the strongest parallel default. Codex and Claude run the same host-neutral worker packets through their own native agent tooling; only the launch notes differ. The route card must record whether the posture was parallel, lead-only, or blocked. Lead-only is allowed for trivial or tightly coupled lanes, but it must be an explicit choice, not the hidden default.
 
 This is why Helmsman can spawn three strategists with the same role and the same mission. They are not three different job titles. They are independent samples of strategic judgment under the same contract. Because LLMs are probabilistic, the same mission can converge differently across runs. That variance is useful signal: repeated independent passes reduce premature convergence and make agreement, disagreement, and missing assumptions easier to see. The director then reads the original strategist reports and compiles one plan.
 
@@ -270,6 +283,12 @@ $helmsman-charting
   -> .helmsman/goals/<goal-id>/goal.md
   -> route-card.md
   -> contract.md
+  -> charting-loop.md
+  -> question-bundles.md
+  -> memory-scan.md
+  -> research-index.md
+  -> worker-packets.md
+  -> research/<slug>.md
   -> verification-scenarios.md
   -> stop-conditions.md
 
@@ -277,3 +296,5 @@ $helmsman-charting
 ```
 
 During a long run, Helmsman asks one question: does this action advance the native goal's route promise? If not, it marks the route blocked and leaves a resume packet instead of inventing a new goal.
+
+For native goals, Charting stays recursive. The first Aperture Question Bundle creates the coordinates for memory lookup. Scoped Memory Scan happens before Research Lanes. Research only covers stale, missing, or conflicting memory. The loop repeats through question bundles, memory scan, research, synthesis, and sharpness checks until Route Lock is safe.

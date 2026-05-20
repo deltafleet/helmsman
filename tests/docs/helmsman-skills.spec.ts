@@ -9,6 +9,10 @@ const SKILL_NAMES = [
   "helmsman-verify",
 ] as const;
 
+async function readPackageJson() {
+  return JSON.parse(await readFile(join(ROOT, "package.json"), "utf8"));
+}
+
 function frontmatter(body: string): string {
   const match = body.match(/^---\n([\s\S]*?)\n---/);
   if (!match) throw new Error("missing frontmatter");
@@ -79,15 +83,121 @@ describe("Helmsman docs", () => {
     expect(charting).toContain("Free-form answers are welcome");
     expect(charting).toContain("Research Lane Execution");
     expect(charting).toContain("Do not research from a vague Initial Query");
+    expect(charting).toContain("Do not hand-author `route-card.md` from memory");
+    expect(charting).toContain("run `bun run validate:skill-session -- .helmsman/sessions/<session-id> --stage charting`");
+    expect(charting).toContain("Repair missing route-card fields and rerun validation");
     expect(template).toContain("## Aperture Bundles");
     expect(template).toContain("## Research Lane Contract");
     expect(template).toContain("## Decision Bundles");
   });
 
-  test("package surface exposes public launch scripts only", async () => {
-    const packageJson = JSON.parse(await readFile(join(ROOT, "package.json"), "utf8"));
+  test("charting skill makes parallel research the default operating contract", async () => {
+    const root = await readFile(join(ROOT, "SKILL.md"), "utf8");
+    const charting = await readFile(
+      join(ROOT, "skills", "helmsman-charting", "SKILL.md"),
+      "utf8",
+    );
+    const template = await readFile(
+      join(ROOT, "skills", "helmsman-charting", "templates", "route-card.md"),
+      "utf8",
+    );
+    const protocol = await readFile(join(ROOT, "docs", "helmsman-protocol.md"), "utf8");
 
-    expect(packageJson.version).toBe("0.2.0");
+    expect(charting).toContain("Parallel research is the default");
+    expect(charting).toContain("one research worker per independent lane");
+    expect(charting).toContain("Max active research lanes: 6");
+    expect(charting).toContain("spawn all launchable research workers in parallel");
+    expect(charting).toContain("host-neutral research worker packets");
+    expect(charting).toContain("Do not let the lead worker silently absorb parallelizable research");
+    expect(charting).toContain("research-index.md");
+    expect(charting).toContain("worker-packets.md");
+    expect(charting).toContain("research/<slug>.md");
+
+    expect(template).toContain("Parallel research posture:");
+    expect(template).toContain("Research worker packets:");
+    expect(template).toContain("Lead-only lanes:");
+    expect(template).toContain("Research index: research-index.md");
+    expect(template).toContain("Research artifacts: research/<slug>.md");
+    expect(template).toContain("Max active lanes: 6 unless user-approved");
+    expect(template).toContain("Topic-to-artifact map:");
+
+    expect(protocol).toContain("Parallel research is a first-class Charting contract");
+    expect(protocol).toContain("Codex and Claude execute the same host-neutral worker packets");
+    expect(protocol).toContain("research-index.md accounts for every selected topic");
+    expect(protocol).toContain("worker-packets.md records the parallel launch group");
+    expect(protocol).toContain("one research/<slug>.md artifact");
+
+    expect(root).toContain("research-index.md");
+    expect(root).toContain("worker-packets.md");
+    expect(root).toContain("research/");
+  });
+
+  test("native goal flow binds the recursive Charting loop contract", async () => {
+    const charting = await readFile(
+      join(ROOT, "skills", "helmsman-charting", "SKILL.md"),
+      "utf8",
+    );
+    const protocol = await readFile(join(ROOT, "docs", "helmsman-protocol.md"), "utf8");
+    const goal = await readFile(
+      join(ROOT, "skills", "helmsman-charting", "templates", "goal.md"),
+      "utf8",
+    );
+    const charter = await readFile(
+      join(ROOT, "skills", "helmsman-charting", "templates", "goal-charter.md"),
+      "utf8",
+    );
+    const stop = await readFile(
+      join(ROOT, "skills", "helmsman-charting", "templates", "stop-conditions.md"),
+      "utf8",
+    );
+
+    for (const body of [charting, protocol, goal, charter]) {
+      expect(body).toContain("charting-loop.md");
+      expect(body).toContain("question-bundles.md");
+      expect(body).toContain("memory-scan.md");
+    }
+
+    expect(goal).toContain("Signal Read -> Aperture Question Bundle");
+    expect(goal).toContain("Scoped Memory Scan before Research Lanes");
+    expect(goal).toContain("repeat question, memory, research, synthesis, and sharpness cycles");
+    expect(goal).toContain("Route Lock is forbidden while Autopilot could reasonably execute a different destination");
+
+    expect(charter).toContain("broad Memory Scan before the first Aperture Question Bundle is forbidden");
+    expect(charter).toContain("Research Lanes only handle stale, missing, or conflicting prior memory");
+    expect(stop).toContain("Broad Memory Scan would run before the first Aperture Question Bundle");
+    expect(stop).toContain("Route Lock would happen before a Sharpness Check");
+  });
+
+  test("specialist role sidecars preserve host-neutral subagent definitions", async () => {
+    const researcher = await readFile(
+      join(ROOT, "skills", "helmsman-charting", "roles", "researcher.md"),
+      "utf8",
+    );
+    expect(researcher).toContain("Role: researcher");
+    expect(researcher).toContain("Charting research worker");
+    expect(researcher).toContain("Codex");
+    expect(researcher).toContain("Claude");
+    expect(researcher).toContain("research/<slug>.md");
+    expect(researcher).toContain("research-index.md");
+    expect(researcher).toContain("No project-norms injection");
+
+    for (const role of ["strategist", "director", "auditor", "implementor"]) {
+      const body = await readFile(
+        join(ROOT, "skills", "helmsman-autopilot", "roles", `${role}.md`),
+        "utf8",
+      );
+      expect(body).toContain(`Role: ${role}`);
+      expect(body).toContain("Host defaults");
+      expect(body).toContain("Codex");
+      expect(body).toContain("Claude");
+      expect(body).toContain("Required output");
+    }
+  });
+
+  test("package surface exposes public launch scripts only", async () => {
+    const packageJson = await readPackageJson();
+
+    expect(packageJson.version).toMatch(/^\d+\.\d+\.\d+$/);
     expect(packageJson.bin).toEqual({ helmsman: "bin/helmsman.mjs" });
     expect(packageJson.scripts).toMatchObject({
       "check:helmsman": "bun scripts/check-helmsman.mjs",
@@ -106,6 +216,7 @@ describe("Helmsman docs", () => {
     const korean = await readFile(join(ROOT, "README.ko.md"), "utf8");
     const distribution = await readFile(join(ROOT, "docs/distribution.md"), "utf8");
     const guards = await readFile(join(ROOT, "docs/release-guards.md"), "utf8");
+    const packageJson = await readPackageJson();
 
     expect(english).toContain("## Host Model");
     expect(english).toContain("## Release Boundary");
@@ -132,7 +243,7 @@ describe("Helmsman docs", () => {
 
     expect(guards).toContain("Public Release Checklist");
     expect(guards).toContain("npm publish --access public");
-    expect(guards).toContain("git tag v0.2.0");
+    expect(guards).toContain(`git tag v${packageJson.version}`);
     expect(guards).not.toContain("OMX");
     expect(guards).not.toContain("Superpowers");
   });

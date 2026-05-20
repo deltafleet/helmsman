@@ -6,6 +6,8 @@ Use when the route is locked but the path is still strategically uncertain.
 
 - `route-card.md`
 - `decision-log.md`
+- `research-index.md`
+- `research/*.md`
 - `evidence/*.md`
 - relevant source files or product docs
 

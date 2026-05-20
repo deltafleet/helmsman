@@ -6,6 +6,8 @@ Use after strategy has converged enough to compile one executable route.
 
 - `route-card.md`
 - `decision-log.md`
+- `research-index.md`
+- `research/*.md`
 - `evidence/*.md`
 - `strategy-samples.md` when present
 - relevant source files

@@ -45,7 +45,7 @@ Optional helpers
 
 | Skill | Responsibility | Default output |
 | --- | --- | --- |
-| `helmsman-charting` | Always-on Aperture Bundles, Bundle Density Read, Research Lane Contract, targeted evidence collection, Decision Bundles, route shaping, decision log, scope lock | `chart.md`, `route-card.md`, `evidence/*.md`, `contract.md`, `map.json` |
+| `helmsman-charting` | Always-on Aperture Bundles, Bundle Density Read, Research Lane Contract, parallel topic-bound research, Decision Bundles, route shaping, decision log, scope lock | `chart.md`, `route-card.md`, `research-index.md`, `research/*.md`, `contract.md`, `map.json` |
 | `helmsman-autopilot` | Strategy sampling, blueprinting, hardening, audit loop, worker coordination, implementation control | `strategy-samples.md`, `director-blueprint.md`, `plan.md`, `audit.md`, updated `agents.json` |
 | `helmsman-verify` | Scenario verification against the route promise plus closeout when pass or parked | `verification.md`, `retro.md`, promoted memory candidates |
 
@@ -64,6 +64,8 @@ Each serious workflow creates a session directory:
   chart.md
   decision-log.md
   route-card.md
+  research-index.md
+  research/
   worker-packets.md
   agents.json
   evidence/
@@ -115,6 +117,12 @@ For overnight or very long work, Charting can create a goal workspace:
   goal-charter.md
   route-card.md
   contract.md
+  charting-loop.md
+  question-bundles.md
+  memory-scan.md
+  research-index.md
+  worker-packets.md
+  research/
   verification-scenarios.md
   stop-conditions.md
   resume-report-template.md
@@ -128,11 +136,21 @@ The user invokes the platform goal with the generated entry document:
 
 `goal.md` is the native goal entrypoint. It should not summarize the route details into a weaker prompt. It should bind the sibling files as the operating contract, require Helmsman skills, require verification against the scenarios before completion is claimed, and require a resume packet when blocked.
 
+Native goal Charting uses the strict route-sharpening loop:
+
+```text
+Signal Read -> Aperture Question Bundle -> Scoped Memory Scan -> Research Lanes -> Synthesis -> Sharpness Check -> loop or Route Lock
+```
+
+The first Aperture Question Bundle creates the coordinates for memory lookup. Broad Memory Scan before that bundle is invalid. Scoped Memory Scan must happen before Research Lanes, and Research Lanes are only for stale, missing, or conflicting prior memory. A route cannot lock while Autopilot could reasonably execute a different destination from the same route card.
+
 The source of truth split is:
 
 - native goal: the platform-level long-running objective invoked with `@.helmsman/goals/<goal-id>/goal.md`
-- sibling Helmsman documents: route, autonomy boundary, stop conditions, verification criteria, and resume format
+- sibling Helmsman documents: route, autonomy boundary, `charting-loop.md`, `question-bundles.md`, `memory-scan.md`, `research-index.md`, `worker-packets.md`, stop conditions, verification criteria, and resume format
 - Helmsman skills: the operating discipline used to execute that attached contract
+
+For Charting questions, `question-bundles.md` is durable state but native chat is the user decision surface. A bundle cannot be treated as asked, answered, lock-ready, or handoff-ready unless the bundle artifact records native question surface evidence covering all questions, options, recommendation reasons, tradeoffs, route effects, and free-form override language. Rendered or answered bundles must also cite `evidence/native-chat-transcript.jsonl#<message-id>` records. Validators compare those records against the question bundle, so artifact self-report alone is not sufficient proof.
 
 If the native goal and attached charter conflict, the agent must stop and report the conflict instead of reconciling it silently.
 
@@ -142,6 +160,7 @@ The Helmsman path has a small deterministic validator:
 
 ```bash
 bun run verify:helmsman
+bun run validate:native-goal -- .helmsman/goals/<goal-id>
 bun run validate:skill-session -- .helmsman/sessions/<session-id> --stage charting
 bun run validate:skill-session -- .helmsman/sessions/<session-id> --stage research
 bun run validate:skill-session -- .helmsman/sessions/<session-id> --stage autopilot
@@ -149,7 +168,7 @@ bun run validate:skill-session -- .helmsman/sessions/<session-id> --stage verify
 bun run validate:skill-session -- .helmsman/sessions/<session-id> --stage retro
 ```
 
-The validator checks the artifact contract, route-card coverage, source-backed evidence, worker packet fields, Autopilot internal-stage artifacts, plan sections, verification matrix, and retro sections. It is a gate over files, not a process owner.
+The validator checks the artifact contract, route-card coverage, source-backed research, worker packet fields, Autopilot internal-stage artifacts, plan sections, verification matrix, and retro sections. It is a gate over files, not a process owner.
 
 `verify:helmsman` is the local release gate, not only a repo-only validator. It also runs `verify:installed-plugin`, so the home-local plugin must already exist and match `plugins/helmsman`. Use `verify:plugin` when the desired check is limited to the generated repository payload.
 
@@ -196,7 +215,7 @@ If Helmsman later needs installed Codex custom agents, that is a separate compan
 - drift verification between source assets and installed agent TOML files
 - a clear split between native plugin skills and companion-installed agents
 
-Until that layer exists, the honest product contract is: native plugin skills plus Autopilot role sidecars.
+Until that layer exists, the honest product contract is: native plugin skills plus Charting and Autopilot role sidecars.
 
 ## Stage Gates
 
@@ -213,8 +232,14 @@ Charting can exit only when:
 
 Charting-owned research can exit only when:
 
-- every research lane has a required artifact
-- evidence files cite concrete sources, files, commands, or observed behavior
+- Parallel research is a first-class Charting contract, not an optional flourish after the lead agent has done the work locally.
+- Codex and Claude execute the same host-neutral worker packets; host-specific launch syntax belongs in launch notes, not in the route authority.
+- independent research lanes have one research worker packet each unless the route card records a concrete lead-only reason
+- launchable research workers were spawned in parallel when the user authorized worker spawning and the host supported it, or the route records why spawning was blocked
+- research-index.md accounts for every selected topic
+- worker-packets.md records the parallel launch group, launch evidence, worker name, allowed write scope, required artifact, done criteria, and forbidden actions for each parallel lane
+- every active topic has exactly one research/<slug>.md artifact or a recorded drop reason
+- research files cite concrete sources, files, commands, or observed behavior
 - unresolved uncertainty is visible in the route or plan
 
 Autopilot can execute only when:
@@ -244,6 +269,8 @@ Verify-owned closeout can close only when:
 Workers are optional and situational.
 
 If worker spawning is explicitly authorized, the lead worker may spawn specialist workers through the available agent tooling. If not, it writes spawn packets for the operator or later lead worker.
+
+Research workers are topic-bound, not implementation-bound. Their normal write scope is one `research/<slug>.md` artifact, while the lead maintains `research-index.md`. The default cap is 6 active research lanes unless the user explicitly approves more. The point is not to minimize total model tokens; it is to spend many useful tokens in parallel and keep every token accountable to a route-changing question and durable artifact.
 
 Every worker packet must include:
 
@@ -285,7 +312,8 @@ helmsman-charting
   -> route-card.md
   -> Aperture Bundles
   -> Research Lane Contract
-  -> evidence/*.md
+  -> research-index.md
+  -> research/*.md
   -> Decision Bundles when research exposes user-owned choices
 helmsman-autopilot
   -> strategy-samples.md

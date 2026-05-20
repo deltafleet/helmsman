@@ -33,8 +33,8 @@ Helmsman은 에이전트 세션이 흔들리기 쉬운 경계마다 근거와 �
 사용자 의도
   -> Aperture Bundle
   -> Research Lane Contract
-  -> Targeted Research
-  -> Evidence
+  -> Parallel Targeted Research
+  -> Research Index + Artifacts
   -> Decision Bundle
   -> Route Lock
   -> Route Card
@@ -71,6 +71,14 @@ Helmsman은 에이전트 세션이 흔들리기 쉬운 경계마다 근거와 �
 
 Research는 결정을 한 뒤 붙이는 설명 문단이 아닙니다. 결정의 입력이고, 개념적으로는 항로가 잠기기 전까지 Charting 안에 속합니다. Helmsman은 Research를 출처나 주제별로 나눠 진행하고, 그 근거를 별도의 작업 기록으로 남길 수 있습니다. 그래서 이후 에이전트가 무엇을 알고 있었는지, 무엇이 불확실했는지, 왜 그 항로를 택했는지 다시 볼 수 있습니다.
 
+### 토큰을 많이 쓰되, 버리지 않는다
+
+Helmsman은 리드 에이전트 하나가 모든 일을 붙잡고 토큰을 아끼는 구조가 아닙니다. 좋은 Research에는 넓이가 필요하고, 서로 독립적인 질문이라면 그 넓이는 병렬로 확보해야 합니다.
+
+원칙은 이렇습니다. 짧은 시간 안에 많은 유효 토큰을 쓴다. 대신 버려지는 토큰은 만들지 않는다. Charting은 넓은 Research 필요를 주제별 lane으로 쪼개고, 각 lane에 host-neutral worker packet을 부여합니다. 호스트가 허용하면 lane들을 병렬로 실행하고, 모든 결과는 `research-index.md`와 하나의 `research/<slug>.md` 작업 기록으로 돌아와야 합니다. 리드 에이전트는 worker 결과를 종합합니다. 병렬화할 수 있는 Research를 조용히 혼자 흡수하는 것이 기본값이면 안 됩니다.
+
+그래서 토큰 사용은 검토 가능합니다. Research lane은 항로를 바꿀 수 있는 질문, 제한된 출처 범위, 필수 결과물, 눈에 보이는 결정 영향이 있을 때만 유효합니다.
+
 ### 계획은 공격을 견뎌야 한다
 
 Blueprint는 느슨한 할 일 목록이면 안 됩니다. 소유권, 의존성, 예상 결과물, Verification 시나리오가 충분히 분명해야 하고, 구현 전에 독립 Auditor들이 공격할 수 있어야 합니다.
@@ -100,8 +108,8 @@ Charting                       Autopilot                         Wiki Memory
 의도
   -> Aperture Bundle      Research 전에 어느 방향을 볼지 사용자와 맞춘다
   -> Research Lane Contract  볼 범위와 보지 않을 범위를 정한다
-  -> Research             결정 전에 출처와 주제별 Evidence를 모은다
-  -> Evidence             결정 전에 출처 있는 사실을 남긴다
+  -> Research             결정 전에 출처와 주제별 Evidence를 병렬로 모은다
+  -> Evidence             색인된 Research 작업 기록으로 출처 있는 사실을 남긴다
   -> Decision Bundle      근거를 보고 항로를 선택하거나 승인한다
   -> Route Lock           사용자 확인이 필요한 선택을 고정한다
   -> Route Card           목표, 위험, 성공 기준, 시나리오를 정한다
@@ -156,6 +164,9 @@ $helmsman-verify      결과를 Route Scenario와 대조하고 세션을 닫는�
   contract.md
   map.json
   route-card.md
+  research-index.md
+  worker-packets.md
+  research/
   evidence/
   strategy-samples.md
   director-blueprint.md
@@ -173,7 +184,7 @@ $helmsman-verify      결과를 Route Scenario와 대조하고 세션을 닫는�
 
 Helmsman의 방향은 자율 실행이 항로를 벗어나지 못하게 하는 작업 방식입니다. 스킬은 배포 형태일 뿐이고, 핵심은 항로 계약과 작업 기록입니다.
 
-제품 경계는 Charting 중심입니다. Charting은 Always Aperture를 맡습니다. 모든 항로는 Aperture Bundle로 시작하고, `Bundle Density Read`는 이번 차례에 질문을 몇 개, 어떤 성격으로 물을지만 정합니다. Targeted Research는 결정이 굳기 전에 Research Lane Contract로 조준되고, Evidence 수집도 Charting 안에서 끝납니다. Autopilot은 Route Lock 이후의 Strategy, Blueprint, Hardening, Audit, Execution, 복구를 운영합니다. Verify는 결과를 Route Scenario와 대조하고, 다음 세션이 재사용할 수 있는 closeout 기록을 남깁니다. 작업자는 필요할 때만 제한된 범위와 필수 결과물을 받아 실행합니다.
+제품 경계는 Charting 중심입니다. Charting은 Always Aperture를 맡습니다. 모든 항로는 Aperture Bundle로 시작하고, `Bundle Density Read`는 이번 차례에 질문을 몇 개, 어떤 성격으로 물을지만 정합니다. Targeted Research는 결정이 굳기 전에 Research Lane Contract로 조준되고, Evidence 수집도 Charting 안에서 끝납니다. 독립 lane이 있으면 병렬 Research가 기본 자세입니다. lane 하나에 topic-bound worker 하나, 활성 Research lane은 기본 최대 6개, 활성 topic마다 `research/<slug>.md` 하나, 전체 조율은 `research-index.md`가 맡습니다. Autopilot은 Route Lock 이후의 Strategy, Blueprint, Hardening, Audit, Execution, 복구를 운영합니다. Verify는 결과를 Route Scenario와 대조하고, 다음 세션이 재사용할 수 있는 closeout 기록을 남깁니다. 작업자는 필요할 때만 제한된 범위와 필수 결과물을 받아 실행합니다.
 
 Autopilot은 실행 방식(`inline`, `serial-workers`, `parallel-workers`, `parked`)을 기록하고, 병렬 작업 전에는 파일과 작업 항목의 충돌 가능성을 확인합니다. 작업자가 살아 있다는 말이나 자기 보고만 믿지 않고, 실제 결과물과 시작/완료/실패 기록을 단계 통과 기준으로 봅니다. 스크립트는 템플릿 생성, 작업 기록 검증, 상태 출력, 기억 정리처럼 반복 가능한 일을 맡지만, 작업 흐름의 판단권을 갖지 않습니다.
 
@@ -204,6 +215,8 @@ Autopilot이 시작되기 전에 목표, Aperture Bundle, Research Lane Contract
 ### Parallel Research, Strategy, Audit, Execution
 
 Helmsman은 독립성이 실제 가치를 만드는 곳에서 병렬성을 씁니다. Charting 중에는 Researcher가 결정이 굳기 전에 출처나 주제별 Research 범위를 나눌 수 있습니다. Route Lock 이후에는 Strategist가 같은 역할과 같은 목표 아래에서 독립적인 Strategy를 만듭니다. Auditor는 한 명의 위험 모델에 갇히지 않도록 같은 Blueprint를 독립적으로 공격합니다. Implementor는 의존성 순서 안에서 함께 움직일 수 있는 작업을 병렬로 처리하고, 막힌 작업은 자기 차례를 기다립니다.
+
+Charting Research는 병렬 기본값이 가장 강한 구간입니다. Codex와 Claude는 같은 host-neutral worker packet을 각자의 native agent tooling으로 실행합니다. 달라지는 것은 launch note뿐입니다. Route Card에는 Research 자세가 `parallel`, `lead-only`, `blocked` 중 무엇이었는지 남아야 합니다. 사소하거나 리드 추론과 너무 붙어 있는 lane은 lead-only가 가능하지만, 그것도 명시적인 선택이어야지 숨은 기본값이면 안 됩니다.
 
 같은 목적의 Strategist를 셋 두는 이유도 여기에 있습니다. 셋은 서로 다른 직책이 아닙니다. 같은 계약과 같은 목표 아래에서 독립적인 Strategy를 뽑는 것입니다. 모델은 확률적으로 추론하기 때문에, 같은 목표를 줘도 실행마다 서로 다른 방식으로 수렴할 수 있습니다. 이 차이 자체가 신호가 됩니다. 독립 실행을 반복하면 너무 이른 결론을 줄이고, 합의 지점, 충돌 지점, 빠진 가정을 더 쉽게 볼 수 있습니다. 이후 Director가 원본 Strategy 보고서를 직접 읽고 하나의 Blueprint로 엮습니다.
 
@@ -272,6 +285,12 @@ $helmsman-charting
   -> .helmsman/goals/<goal-id>/goal.md
   -> route-card.md
   -> contract.md
+  -> charting-loop.md
+  -> question-bundles.md
+  -> memory-scan.md
+  -> research-index.md
+  -> worker-packets.md
+  -> research/<slug>.md
   -> verification-scenarios.md
   -> stop-conditions.md
 
@@ -279,3 +298,5 @@ $helmsman-charting
 ```
 
 긴 작업 중 기준은 하나입니다. 이 행동이 native goal에서 약속한 항로를 앞으로 밀고 있는가. 불명확하면 새 목표를 즉흥적으로 만들지 않고, 항로를 `blocked`로 표시한 뒤 사용자가 바로 이어받을 수 있는 재개 기록을 남깁니다.
+
+Native goal에서도 Charting은 반복 루프입니다. 첫 Aperture Question Bundle이 memory lookup의 좌표를 만들고, scoped Memory Scan은 Research Lanes 전에 일어납니다. Research는 기존 기억이 stale, missing, conflict인 경우만 다룹니다. 질문 번들, memory scan, research, synthesis, sharpness check는 Route Lock이 안전해질 때까지 반복됩니다.

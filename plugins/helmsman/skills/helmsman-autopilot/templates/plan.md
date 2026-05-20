@@ -15,7 +15,7 @@ Integration order: <merge or serial order, or none>
 
 Owner: <lead worker or worker name>
 Allowed write scope: <exact paths or artifacts>
-Inputs: <route-card.md, evidence files, and relevant source files>
+Inputs: <route-card.md, research-index.md, research files, evidence files, and relevant source files>
 Exact changes: <specific change list>
 Expected evidence: <commands, files, or inspection evidence>
 Dependency: <dependency or none>

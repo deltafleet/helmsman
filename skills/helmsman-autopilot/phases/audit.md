@@ -6,6 +6,8 @@ Use before risky execution or after a plan revision.
 
 - `route-card.md`
 - `decision-log.md`
+- `research-index.md`
+- `research/*.md`
 - `evidence/*.md`
 - `director-blueprint.md`
 - `plan.md`

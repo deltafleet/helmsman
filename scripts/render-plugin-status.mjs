@@ -554,6 +554,17 @@ async function summarize(args) {
   const payloadComparison = args.skipPayloadCompare
     ? skippedPayloadComparison()
     : await comparePayloads(pluginDir, compareTo);
+  const codexCacheComparison = codexInstall.cachePresent
+    ? await comparePayloads(codexInstall.cacheDir, pluginDir)
+    : {
+        checked: false,
+        required: true,
+        matches: false,
+        reason: "Codex plugin cache is missing",
+        missing: [],
+        extra: [],
+        differing: [],
+      };
   const latest = await latestCheck(args, codexInstall.pluginVersion);
   const ready =
     installedStatus.directory &&
@@ -561,7 +572,8 @@ async function summarize(args) {
     payloadManifestValidation.valid &&
     marketplaceReady &&
     (!payloadComparison.required || payloadComparison.matches) &&
-    codexInstall.installed;
+    codexInstall.installed &&
+    codexCacheComparison.matches;
 
   const blockers = [];
   if (payloadComparison.required && !generatedStatus.directory) {
@@ -603,6 +615,12 @@ async function summarize(args) {
   if (codexInstall.configPresent && !codexInstall.configEnabled) {
     blockers.push("Codex config does not enable helmsman@local");
   }
+  if (codexCacheComparison.checked && !codexCacheComparison.matches) {
+    blockers.push("Codex plugin cache differs from installed plugin payload");
+  }
+  if (codexCacheComparison.required && !codexCacheComparison.checked) {
+    blockers.push(`Codex plugin cache comparison skipped: ${codexCacheComparison.reason}`);
+  }
 
   return {
     ready,
@@ -621,6 +639,7 @@ async function summarize(args) {
     marketplaceEntryResolvedPath: entryResolvedPath,
     marketplaceReady,
     payloadComparison,
+    codexCacheComparison,
     codexInstall,
     latestCheck: latest,
     blockers,
@@ -651,6 +670,9 @@ function printText(summary) {
   console.log(`Marketplace entry: ${summary.marketplaceEntryPresent ? "present" : "missing"}`);
   console.log(`Marketplace entry resolves: ${summary.marketplaceEntryResolves ? "yes" : "no"}`);
   console.log(`Codex cache installed: ${summary.codexInstall.cachePresent ? "yes" : "no"}`);
+  console.log(
+    `Codex cache payload: ${summary.codexCacheComparison.matches ? "matches installed" : "differs from installed"}`,
+  );
   console.log(`Codex config enabled: ${summary.codexInstall.configEnabled ? "yes" : "no"}`);
   if (summary.codexInstall.cacheDir) console.log(`Codex cache: ${summary.codexInstall.cacheDir}`);
   if (summary.latestCheck.checked) {

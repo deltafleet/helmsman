@@ -38,6 +38,7 @@ function parseArgs(argv) {
     dryRun: false,
     skipBuild: false,
     codexInstall: false,
+    skipCodexInstall: false,
     codexBin: process.env.HELMSMAN_CODEX_BIN || "codex",
     force: false,
     json: false,
@@ -74,6 +75,7 @@ function parseArgs(argv) {
     }
     if (flag === "--skip-codex-install") {
       parsed.codexInstall = false;
+      parsed.skipCodexInstall = true;
       continue;
     }
     if (flag === "--codex-bin") {
@@ -95,6 +97,7 @@ function parseArgs(argv) {
     if (!home) fail("HOME is required for --target-home");
     parsed.pluginDir ??= join(home, "plugins/helmsman");
     parsed.marketplace ??= join(home, ".agents/plugins/marketplace.json");
+    if (!parsed.skipCodexInstall) parsed.codexInstall = true;
   }
   if (!parsed.pluginDir || !parsed.marketplace) {
     fail("choose --target-home or provide both --plugin-dir and --marketplace");
@@ -281,7 +284,8 @@ function buildSourcePlugin({ quiet = false } = {}) {
   }
 }
 
-function installIntoCodex({ codexBin, marketplacePath, timeoutMs = 30000 }) {
+async function installIntoCodex({ codexBin, marketplacePath, timeoutMs = 30000 }) {
+  const packageJson = JSON.parse(await readFile(join(ROOT, "package.json"), "utf8"));
   return new Promise((resolvePromise, reject) => {
     const child = spawn(codexBin, ["app-server", "--listen", "stdio://"], {
       cwd: ROOT,
@@ -384,7 +388,7 @@ function installIntoCodex({ codexBin, marketplacePath, timeoutMs = 30000 }) {
     send(1, "initialize", {
       clientInfo: {
         name: "helmsman-installer",
-        version: "0.2.0",
+        version: packageJson.version,
       },
       capabilities: {
         experimentalApi: true,

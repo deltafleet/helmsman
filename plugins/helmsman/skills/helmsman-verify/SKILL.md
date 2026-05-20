@@ -18,6 +18,7 @@ Read:
 - `route-card.md`
 - `plan.md`
 - `audit.md`
+- `research-index.md` and `research/*.md` when Charting research was used
 - worker evidence
 - changed files or produced artifacts
 - relevant command/test output

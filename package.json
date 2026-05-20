@@ -1,6 +1,6 @@
 {
   "name": "@deltafleet/helmsman",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Helmsman protocol assets and deterministic helper toolbelt for Codex agent workflows.",
   "type": "module",
   "license": "MIT",
@@ -52,6 +52,7 @@
     "prepack": "bun run build:plugin && bun run verify:plugin && bun run verify:version",
     "install:plugin": "bun scripts/install-plugin.mjs",
     "validate:skill-session": "bun scripts/validate-skill-session.mjs",
+    "validate:native-goal": "bun scripts/validate-native-goal.mjs",
     "render:skill-status": "bun scripts/render-skill-status.mjs",
     "scaffold:skill-artifact": "bun scripts/scaffold-skill-artifact.mjs",
     "render:plugin-status": "bun scripts/render-plugin-status.mjs",

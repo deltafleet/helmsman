@@ -6,6 +6,8 @@ Use when audit, execution, or verification fails.
 
 - failed `audit.md`, `execution-report.md`, or `verification.md`
 - `route-card.md`
+- `research-index.md`
+- `research/*.md`
 - `plan.md`
 - changed files or artifacts
 

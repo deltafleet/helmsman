@@ -32,11 +32,24 @@ Initialize or update:
 - `chart.md`
 - `decision-log.md`
 - `route-card.md`
+- `charting-loop.md` when the route may need more than one Charting cycle
+- `question-bundles.md` when any Aperture or Decision Bundle is asked
+- `memory-scan.md` before Research Lanes
+- `research-index.md` when Research is selected
+- `worker-packets.md` when Research can run through workers
+- `research/` when Research workers run
+
+Start route artifacts from the bundled template or `scaffold:skill-artifact`. Do not hand-author `route-card.md` from memory. The route card must keep every field listed in the Route Card section below, even when a field says that work is skipped, lead-only, or not applicable.
 
 If the user is preparing a native `/goal` for a long unattended run, also create a native goal entry set:
 
 - `goal.md`
 - `goal-charter.md`
+- `charting-loop.md`
+- `question-bundles.md`
+- `memory-scan.md`
+- `research-index.md`
+- `worker-packets.md` when Research can run through workers
 - `stop-conditions.md`
 - `verification-scenarios.md`
 - `resume-report-template.md`
@@ -51,6 +64,7 @@ Allowed actions:
 - ask Aperture and Decision Bundle questions in the native conversation
 - inspect nearby files/docs needed to avoid context-free questions
 - inspect relevant files/docs
+- spawn research workers after the Research Lane Contract when explicitly authorized
 - update charting artifacts
 Forbidden actions:
 - edit product/source files
@@ -148,6 +162,12 @@ What this answer changes:
 
 Do not use a custom Ask UI. Native chat is the question surface.
 
+Native chat replay rule:
+
+When an Aperture or Decision Bundle waits on user authority, the lead's next native-chat message must render the full bundle before asking for an answer. Full bundle means every question, every A/B/C option, the recommended option, recommendation reason, option reason, tradeoff, route effect, and the free-form override sentence.
+
+Writing the bundle to `question-bundles.md` is not the same as asking it. A bundle is not asked until `question-bundles.md` records native question surface evidence showing that the full option set was rendered to native chat, and that evidence must point at `evidence/native-chat-transcript.jsonl#<message-id>` records. The assistant record must contain every question, every A/B/C option, the recommendation marker, and the free-form override sentence. Once answered, the user record must match the recorded `User answer`.
+
 Record the selected aperture, skipped lanes, and bundle review in `route-card.md`.
 
 ## Research Lane Contract
@@ -165,12 +185,23 @@ It must state:
 - evidence shape expected
 - decision that research should enable
 - stop condition
+- parallel research posture
+- research topic list with stable slugs
+- `research-index.md` as the coordination index
+- one required `research/<slug>.md` artifact per selected topic
+- Max active research lanes: 6 unless the user explicitly approves a higher cap
+- lead-only lanes and why they are not worth spawning
+- research worker packets required before launch
 
 Research must be aimed by the Aperture answer. Do not research from a vague Initial Query or unaimed route.
 
 ## Research Lane Execution
 
-Use the smallest lane split that reduces risk and stays inside the Research Lane Contract. Common lanes:
+Parallel research is the default. The point is to spend many model tokens in a short wall-clock window without wasting them: independent research lanes should run as research workers, and every worker token must land in a durable research artifact.
+
+The lead agent should not save tokens by doing parallelizable research alone. It should save wasted tokens by aiming each lane before launch, bounding each packet, and forcing every result into an artifact that can be reused.
+
+Use the smallest lane split that preserves useful parallelism and stays inside the Research Lane Contract. Merge tightly coupled or trivial lanes; split independent lanes. Common lanes:
 
 - source-of-truth lane
 - current-code lane
@@ -179,32 +210,59 @@ Use the smallest lane split that reduces risk and stays inside the Research Lane
 - user-experience lane
 - implementation-feasibility lane
 
-Do not create parallel workers for lanes the lead worker can inspect faster locally.
+Use one research worker per independent lane unless a lane is too cheap, too tightly coupled to the lead's current reasoning, or blocked by a user-owned decision. Do not let the lead worker silently absorb parallelizable research.
 
 Every lane must trace to the selected aperture. If a source would not change the route decision named by Charting, record it as skipped instead of researching it by momentum.
 
-If workers are useful, append packets to `worker-packets.md`:
+Maintain `research-index.md` as the coordination spine:
 
 ```text
-## Worker: researcher-<topic>
+# Research Index
 
-Mission:
-Context to read:
-Allowed write scope:
-Forbidden actions:
-Required output artifact:
-Done criteria:
-Verification notes:
+Max active research lanes: 6 unless user-approved
+Launch posture: <parallel|lead-only|blocked>
+
+| Slug | Question | Lane Type | Owner | Status | Artifact | Sources Checked | Decision Impact | Open Uncertainty |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| <slug> | <question> | <lane type> | <lead|worker name> | <queued|running|done|dropped> | research/<slug>.md | <count or source list> | <route effect> | <none or issue> |
 ```
 
-Allowed write scope should usually be one file under `evidence/`.
+The index is not a ranking system. It accounts for every selected topic, owner, status, artifact path, source count, decision impact, and remaining uncertainty.
 
-If worker spawning is explicitly authorized in the conversation, spawn workers through available agent tooling. Otherwise stop after writing packets and tell the operator what to launch.
-
-Each `evidence/*.md` file must include:
+Before launch, append host-neutral research worker packets to `worker-packets.md`:
 
 ```text
-# Evidence: <topic>
+# Worker Packets
+
+Launch mode: parallel
+Launch evidence: <spawned in parallel|manual launch required|blocked and why>
+Parallel launch group: <cycle id>
+
+## Worker: researcher-<topic>
+
+Worker name: researcher-<topic>
+Mission: <one route-changing research question>
+Context to read: <files, docs, or artifacts>
+Allowed write scope: research/<slug>.md
+Required artifact: research/<slug>.md
+Required output artifact: research/<slug>.md
+Done criteria: observations and inferences are split, sources are listed, and decision impact is explicit.
+Forbidden actions: do not edit route-card.md, choose user-owned decisions, or expand scope.
+Verification notes: <how the lead should verify this artifact>
+Parallel group: <cycle id>
+Host launch notes: <spawned|manual launch required|blocked>
+```
+
+Allowed write scope should usually be exactly one file under `research/`: `research/<slug>.md`. The lead owns `research-index.md` unless a packet explicitly assigns an index update.
+
+Research worker packets are host-neutral. Codex and Claude execute the same host-neutral worker packets through their available agent tooling; only the host launch notes differ.
+
+If worker spawning is explicitly authorized in the conversation, spawn all launchable research workers in parallel through available agent tooling. If the host cannot spawn, or authorization is missing, stop after writing packets and tell the operator exactly what to launch.
+
+Each `research/<slug>.md` file must include:
+
+```text
+# Research: <topic>
 
 ## Question
 ## Lane Type
@@ -219,7 +277,7 @@ Each `evidence/*.md` file must include:
 
 Use links, file paths, command outputs, or direct observations. Keep `Observations` limited to what was actually seen. Put interpretation, tradeoffs, and extrapolation in `Inferences`.
 
-Research is complete when every lane has an evidence artifact or a recorded reason why the lane was dropped. Evidence that collapses observation and inference back into generic findings is not exit-ready.
+Research is complete when `research-index.md` accounts for every selected topic and every active topic has exactly one `research/<slug>.md` artifact or a recorded drop reason. Evidence that collapses observation and inference back into generic findings is not exit-ready.
 
 ## Decision Bundles
 
@@ -262,6 +320,12 @@ For overnight or very long work, produce:
   goal-charter.md
   route-card.md
   contract.md
+  charting-loop.md
+  question-bundles.md
+  memory-scan.md
+  research-index.md
+  worker-packets.md
+  research/
   verification-scenarios.md
   stop-conditions.md
   resume-report-template.md
@@ -273,7 +337,15 @@ The user-facing invocation should be:
 /goal @.helmsman/goals/<goal-id>/goal.md
 ```
 
-`goal.md` is the native goal entrypoint. It binds the sibling charter, route card, contract, stop conditions, verification scenarios, and resume template as the operating contract. Do not summarize that contract into a weaker prompt. If `goal.md` and a sibling contract file conflict, stop and report the conflict.
+`goal.md` is the native goal entrypoint. It binds the sibling charter, route card, contract, charting loop, question bundles, memory scan, stop conditions, verification scenarios, and resume template as the operating contract. Do not summarize that contract into a weaker prompt. If `goal.md` and a sibling contract file conflict, stop and report the conflict.
+
+Native goal Charting must preserve the recursive loop:
+
+```text
+Signal Read -> Aperture Question Bundle -> Scoped Memory Scan before Research Lanes -> Synthesis -> Sharpness Check -> loop or Route Lock
+```
+
+Broad Memory Scan before the first Aperture Question Bundle is forbidden. Research Lanes only handle stale, missing, or conflicting prior memory. Route Lock is forbidden while Autopilot could reasonably execute a different destination from the same route card.
 
 ## Route Card
 
@@ -291,6 +363,13 @@ Bundle Density Read:
 Aperture bundle status:
 ## Research Lane Contract
 Research lanes:
+Parallel research posture:
+Research worker packets:
+Lead-only lanes:
+Research index:
+Research artifacts:
+Max active lanes:
+Topic-to-artifact map:
 ## Decision Bundles
 Decision bundle status:
 ## Open Questions
@@ -337,12 +416,15 @@ Keep `map.json` small:
 
 Before leaving Charting, reread the route card against the user's original request.
 
+When running inside the Helmsman repository checkout or any environment where the helper exists, run `bun run validate:skill-session -- .helmsman/sessions/<session-id> --stage charting` before reporting a charting session as ready. If `research-index.md`, `research/`, or `evidence/` exists, also run the research-stage validator. Repair missing route-card fields and rerun validation before claiming the session is clean. If the validator is unavailable, explicitly say it was unavailable and manually check every Route Card required field.
+
 Do not continue if:
 
 - no Aperture Bundle was asked or explicitly recorded
 - `Bundle Density Read` was used to skip Aperture
 - Research Lane Contract is missing before Research
 - user-owned decisions remain after Research without a Decision Bundle
+- an Aperture or Decision Bundle is blocked, answered, or lock-ready without native question surface evidence in `question-bundles.md` and matching transcript records in `evidence/native-chat-transcript.jsonl`
 - success criteria are vague
 - implementation scope is unapproved
 - verification scenarios are missing

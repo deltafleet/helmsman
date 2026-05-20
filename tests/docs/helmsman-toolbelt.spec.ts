@@ -33,6 +33,9 @@ describe("helmsman CLI toolbelt", () => {
     const goalDoc = await readFile(join(session, "goal.md"), "utf8");
     expect(goalDoc).toContain("/goal @.helmsman/goals/<goal-id>/goal.md");
     expect(goalDoc).toContain("This document and its sibling files are the execution contract");
+    expect(goalDoc).toContain("Signal Read -> Aperture Question Bundle");
+    expect(goalDoc).toContain("Scoped Memory Scan before Research Lanes");
+    expect(goalDoc).toContain("repeat question, memory, research, synthesis, and sharpness cycles");
 
     const goal = await execFileAsync(
       process.execPath,
@@ -44,6 +47,36 @@ describe("helmsman CLI toolbelt", () => {
     expect(charter).toContain("# Goal Charter");
     expect(charter).toContain("Native Goal Source");
     expect(charter).toContain("Autonomy Boundary");
+    expect(charter).toContain("charting-loop.md");
+    expect(charter).toContain("memory-scan.md");
+    expect(charter).toContain("question-bundles.md");
+
+    for (const artifact of ["charting-loop", "memory-scan", "question-bundles", "native-chat-transcript", "worker-packets"]) {
+      const result = await execFileAsync(
+        process.execPath,
+        ["scripts/scaffold-skill-artifact.mjs", session, "--artifact", artifact],
+        { cwd: ROOT },
+      );
+      expect(result.stdout).toContain(`scaffolded ${artifact}`);
+    }
+
+    const loop = await readFile(join(session, "charting-loop.md"), "utf8");
+    expect(loop).toContain("Signal Read");
+    expect(loop).toContain("Sharpness Check");
+
+    const memory = await readFile(join(session, "memory-scan.md"), "utf8");
+    expect(memory).toContain("reused | stale | irrelevant | missing | conflict");
+
+    const questions = await readFile(join(session, "question-bundles.md"), "utf8");
+    expect(questions).toContain("Aperture Question Bundle");
+    expect(questions).toContain("Decision Question Bundle");
+
+    const transcript = await readFile(join(session, "evidence/native-chat-transcript.jsonl"), "utf8");
+    expect(transcript).toContain('"surface":"native-chat"');
+
+    const workerPackets = await readFile(join(session, "worker-packets.md"), "utf8");
+    expect(workerPackets).toContain("Launch mode: parallel");
+    expect(workerPackets).toContain("Worker name: researcher-<topic>");
 
     await expect(
       execFileAsync(

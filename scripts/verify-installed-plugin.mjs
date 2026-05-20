@@ -135,6 +135,7 @@ function assertCodexInstall(pluginDir) {
   }
   console.log(`Codex plugin cache verified: ${cacheDir}`);
   console.log(`Codex plugin enabled: ${configPath}`);
+  return cacheDir;
 }
 
 function marketplaceRoot(marketplacePath) {
@@ -212,7 +213,14 @@ function main() {
   const marketplacePath = resolve(args.marketplace);
   assertInstalledPluginPresent(pluginDir);
   assertMarketplaceEntry(pluginDir, marketplacePath);
-  assertCodexInstall(pluginDir);
+  const cacheDir = assertCodexInstall(pluginDir);
+  run([
+    "scripts/verify-plugin.mjs",
+    "--plugin-dir",
+    cacheDir,
+    "--compare-to",
+    pluginDir,
+  ]);
   run([
     "scripts/verify-plugin.mjs",
     "--plugin-dir",
