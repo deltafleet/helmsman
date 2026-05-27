@@ -1,13 +1,4 @@
 node_modules/
-# Helmsman owns this project root. It contains product memory plus session
-# artifacts, so keep it out of repository commits by default.
 .helmsman/
-.goalkeeper/
-
-*.log
-*.sqlite
-
-# Local Codex execution profiles and transcripts are evidence inputs, not source.
-docs/issues/
-docs/private/
-private/
+.DS_Store
+*.tgz

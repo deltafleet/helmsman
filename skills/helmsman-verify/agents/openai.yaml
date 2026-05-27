@@ -1,4 +1,0 @@
-interface:
-  display_name: "Helmsman Verify"
-  short_description: "Verify delivery against route scenarios"
-  default_prompt: "Use $helmsman-verify to compare the result against route scenarios before completion."

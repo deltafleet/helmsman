@@ -1,35 +1,9 @@
 {
   "name": "@deltafleet/helmsman",
-  "version": "0.3.0",
-  "description": "Helmsman protocol assets and deterministic helper toolbelt for Codex agent workflows.",
-  "type": "module",
+  "version": "0.4.0",
+  "description": "Native TUI workbench for route-governed coding-agent autonomy.",
   "license": "MIT",
-  "bin": {
-    "helmsman": "bin/helmsman.mjs"
-  },
-  "files": [
-    "bin/",
-    "scripts/",
-    "plugins/helmsman/",
-    "skills/",
-    "SKILL.md",
-    "docs/distribution.md",
-    "docs/open-source-operations.md",
-    "docs/helmsman-protocol.md",
-    "docs/map-schema.md",
-    "docs/release-guards.md",
-    "README.md",
-    "README.ko.md",
-    "LICENSE",
-    "CODE_OF_CONDUCT.md",
-    "CONTRIBUTING.md",
-    "SECURITY.md",
-    ".agents/plugins/marketplace.json",
-    ".claude-plugin/marketplace.json"
-  ],
-  "publishConfig": {
-    "access": "public"
-  },
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/deltafleet/helmsman.git"
@@ -38,37 +12,47 @@
     "url": "https://github.com/deltafleet/helmsman/issues"
   },
   "homepage": "https://github.com/deltafleet/helmsman#readme",
-  "packageManager": "bun@1.3.13",
-  "scripts": {
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "typecheck": "bun tsc --noEmit",
-    "check:helmsman": "bun scripts/check-helmsman.mjs",
-    "build:plugin": "bun scripts/build-plugin.mjs",
-    "verify:plugin": "bun run build:plugin && bun scripts/verify-plugin.mjs",
-    "verify:version": "bun scripts/verify-version-consistency.mjs",
-    "verify:installed-plugin": "bun scripts/verify-installed-plugin.mjs",
-    "verify:ci": "bun scripts/verify-ci.mjs",
-    "prepack": "bun run build:plugin && bun run verify:plugin && bun run verify:version",
-    "install:plugin": "bun scripts/install-plugin.mjs",
-    "validate:skill-session": "bun scripts/validate-skill-session.mjs",
-    "validate:native-goal": "bun scripts/validate-native-goal.mjs",
-    "render:skill-status": "bun scripts/render-skill-status.mjs",
-    "scaffold:skill-artifact": "bun scripts/scaffold-skill-artifact.mjs",
-    "render:plugin-status": "bun scripts/render-plugin-status.mjs",
-    "fetch:skill-memory": "bun scripts/fetch-skill-memory.mjs",
-    "compile:skill-memory": "bun scripts/compile-skill-memory.mjs",
-    "audit:removed-surfaces": "bun scripts/audit-removed-surfaces.mjs",
-    "install:skills": "bun scripts/install-helmsman-skills.mjs",
-    "verify:helmsman": "bun scripts/verify-helmsman.mjs"
+  "bin": {
+    "helmsman": "bin/helmsman.js"
   },
-  "devDependencies": {
-    "@types/node": "^22.10.0",
-    "bun-types": "^1.3.12",
-    "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+  "files": [
+    "bin",
+    "src",
+    "docs",
+    "README.md",
+    "README.ko.md",
+    "package.json"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "verify": "npm run verify:pi-runtime && npm run verify:core && npm run verify:tui && npm run verify:question-ui && npm run verify:role-runtime && npm run verify:memory-research && npm run verify:route-lock && npm run verify:autopilot && npm run verify:verification-closeout && npm run verify:product-audit",
+    "verify:pi-runtime": "tsx src/verify/pi-runtime-foundation.ts",
+    "verify:pi-runtime:live": "tsx src/verify/pi-runtime-foundation.ts --live",
+    "verify:core": "tsx src/verify/core-event-reducer-board.ts",
+    "verify:tui": "tsx src/verify/tui-workbench.ts",
+    "verify:question-ui": "tsx src/verify/question-ui-adapter.ts",
+    "verify:role-runtime": "tsx src/verify/role-runtime.ts",
+    "verify:role-runtime:live": "tsx src/verify/role-runtime.ts",
+    "verify:memory-research": "tsx src/verify/memory-research.ts",
+    "verify:route-lock": "tsx src/verify/route-lock-amendment.ts",
+    "verify:autopilot": "tsx src/verify/autopilot-loop.ts",
+    "verify:verification-closeout": "tsx src/verify/verification-closeout.ts",
+    "verify:product-audit": "tsx src/verify/install-doctor-product-audit.ts"
   },
   "engines": {
-    "node": ">=20.11.0"
+    "node": ">=22.19.0"
+  },
+  "dependencies": {
+    "@earendil-works/pi-agent-core": "0.75.5",
+    "@earendil-works/pi-ai": "0.75.5",
+    "@earendil-works/pi-coding-agent": "0.75.5",
+    "@earendil-works/pi-tui": "0.75.5",
+    "tsx": "4.20.5"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
   }
 }

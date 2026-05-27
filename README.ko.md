@@ -97,7 +97,7 @@ Verification이 실패하면 실패 기록을 보관합니다. 다음 구현 차
 
 원본 채팅 기록은 너무 길고, 그 순간의 맥락에 너무 묶여 있고, 잡음도 많습니다. Helmsman은 세션 결과를 이후 에이전트가 필요한 부분만 골라 읽을 수 있는 Wiki Memory로 바꿉니다.
 
-위키의 `index.md`는 검색 점수표가 아니라 목차입니다. 이후 세션은 먼저 목차를 읽고, 에이전트가 현재 질문, 이전 결정, 작업 맥락을 보고 어떤 개념 문서와 세션 문서가 관련 있는지 판단합니다. 검증 도구는 문서 구조와 출처 표시만 확인합니다. 파일명, 키워드 일치, 임베딩 점수, 신뢰도 숫자로 관련성을 대신 판단하지 않습니다.
+위키의 `index.md`는 검색 점수표가 아니라 목차입니다. 이후 세션은 먼저 목차를 읽고, 에이전트가 현재 질문, 이전 결정, 작업 맥락을 보고 어떤 개념 문서와 세션 문서가 관련 있는지 판단합니다. 문서 구조와 출처 표시는 중요하지만, 관련성은 파일명, 키워드 일치, 임베딩 점수, 신뢰도 숫자로 대신 판단하지 않습니다.
 
 ## 작업 흐름
 
@@ -110,7 +110,7 @@ Charting                       Autopilot                         Wiki Memory
   -> Research Lane Contract  볼 범위와 보지 않을 범위를 정한다
   -> Research             결정 전에 출처와 주제별 Evidence를 병렬로 모은다
   -> Evidence             색인된 Research 작업 기록으로 출처 있는 사실을 남긴다
-  -> Decision Bundle      근거를 보고 항로를 선택하거나 승인한다
+  -> Decision Bundle      근거를 보고 사용자가 소유한 항로 결정을 선택한다
   -> Route Lock           사용자 확인이 필요한 선택을 고정한다
   -> Route Card           목표, 위험, 성공 기준, 시나리오를 정한다
      불명확하면: 다시 Charting으로 돌아간다
@@ -178,7 +178,7 @@ $helmsman-verify      결과를 Route Scenario와 대조하고 세션을 닫는�
   retro.md
 ```
 
-운영 규칙은 단순합니다. 상태는 작업 기록이 맡고, 리드 에이전트는 현재 계약 안에서 판단합니다. 스크립트는 템플릿 생성, 검증, 상태 출력처럼 반복 작업에서 생기는 실수를 줄입니다. 정상적인 실행에서는 리드가 `contract.md`를 갱신하고, 다음 작업 기록을 쓰고, 필요한 검증이나 상태 출력을 돌린 뒤 현재 스킬 안에서 계속하거나 다음 단계로 넘어갑니다.
+운영 규칙은 단순합니다. 상태는 작업 기록이 맡고, 리드 에이전트는 현재 계약 안에서 판단합니다. 스크립트는 템플릿 생성, 상태 출력, 기억 정리처럼 반복 작업에서 생기는 실수를 줄입니다. 정상적인 실행에서는 리드가 `contract.md`를 갱신하고, 다음 작업 기록을 쓰고, 필요한 상태 출력을 확인한 뒤 현재 스킬 안에서 계속하거나 다음 단계로 넘어갑니다.
 
 ## 현재 방향
 
@@ -186,19 +186,17 @@ Helmsman의 방향은 자율 실행이 항로를 벗어나지 못하게 하는 �
 
 제품 경계는 Charting 중심입니다. Charting은 Always Aperture를 맡습니다. 모든 항로는 Aperture Bundle로 시작하고, `Bundle Density Read`는 이번 차례에 질문을 몇 개, 어떤 성격으로 물을지만 정합니다. Targeted Research는 결정이 굳기 전에 Research Lane Contract로 조준되고, Evidence 수집도 Charting 안에서 끝납니다. 독립 lane이 있으면 병렬 Research가 기본 자세입니다. lane 하나에 topic-bound worker 하나, 활성 Research lane은 기본 최대 6개, 활성 topic마다 `research/<slug>.md` 하나, 전체 조율은 `research-index.md`가 맡습니다. Autopilot은 Route Lock 이후의 Strategy, Blueprint, Hardening, Audit, Execution, 복구를 운영합니다. Verify는 결과를 Route Scenario와 대조하고, 다음 세션이 재사용할 수 있는 closeout 기록을 남깁니다. 작업자는 필요할 때만 제한된 범위와 필수 결과물을 받아 실행합니다.
 
-Autopilot은 실행 방식(`inline`, `serial-workers`, `parallel-workers`, `parked`)을 기록하고, 병렬 작업 전에는 파일과 작업 항목의 충돌 가능성을 확인합니다. 작업자가 살아 있다는 말이나 자기 보고만 믿지 않고, 실제 결과물과 시작/완료/실패 기록을 단계 통과 기준으로 봅니다. 스크립트는 템플릿 생성, 작업 기록 검증, 상태 출력, 기억 정리처럼 반복 가능한 일을 맡지만, 작업 흐름의 판단권을 갖지 않습니다.
+Autopilot은 실행 방식(`inline`, `serial-workers`, `parallel-workers`, `parked`)을 기록하고, 병렬 작업 전에는 파일과 작업 항목의 충돌 가능성을 확인합니다. 작업자가 살아 있다는 말이나 자기 보고만 믿지 않고, 실제 결과물과 시작/완료/실패 기록을 단계 통과 기준으로 봅니다. 스크립트는 템플릿 생성, 상태 출력, 기억 정리처럼 반복 가능한 일을 맡지만, 작업 흐름의 판단권을 갖지 않습니다.
 
-배포 설명은 의도적으로 README 밖으로 뺐습니다. 짧게 말하면, 생성된 배포 묶음이 Codex와 Claude Code 양쪽에 스킬을 노출하고, 제품의 약속은 위의 작업 기록과 작업 흐름에 남습니다. 설치 명령, 호스트 설정 파일, 배포 등록 정보, 검증 기준은 [docs/distribution.md](docs/distribution.md)에 있습니다.
+배포 설명은 의도적으로 README 밖으로 뺐습니다. 짧게 말하면, 생성된 배포 묶음이 Codex와 Claude Code 양쪽에 스킬을 노출하고, 제품의 약속은 위의 작업 기록과 작업 흐름에 남습니다. 설치 명령, 호스트 설정 파일, 배포 등록 정보, 새 릴리즈 기준은 [docs/distribution.md](docs/distribution.md)에 있습니다.
 
-npm에 새 버전이 올라가도 로컬에 설치된 플러그인 캐시는 자동으로 바뀌지 않습니다. `helmsman doctor`는 npm `latest`와 로컬 설치 버전의 차이를 보여주고, `helmsman update`는 최신 배포판 기준으로 로컬 payload와 Codex cache를 다시 설치합니다.
-
-설치된 스킬은 Helmsman에 처음 진입한 리드 에이전트에게 read-only `doctor` 확인을 한 번 실행하라고 지시합니다. 그래서 사용자가 직접 업데이트 여부를 확인할 필요가 없습니다. 에이전트는 새 버전이 있으면 알려주기만 하고, 사용자 승인 없이 업데이트를 실행하지 않습니다.
+npm에 새 버전이 올라가도 로컬에 설치된 플러그인 캐시는 자동으로 바뀌지 않습니다. `helmsman update`는 최신 배포판 기준으로 로컬 payload와 Codex cache를 다시 설치합니다. 설치된 스킬은 설치 상태 점검을 workflow readiness 근거로 실행하지 않습니다.
 
 ## 릴리즈 경계
 
 위의 사용 흐름이 제품 경로입니다. 공개 릴리즈 체크는 `docs/release-guards.md`에 둡니다. 일상 사용이 관리자 체크리스트처럼 변하면 제품이 약해집니다.
 
-릴리즈 경계는 의도적으로 좁습니다. 배포 묶음을 만들고, 패키지와 설정 파일의 버전이 맞는지 검증하고, 작업 기록/세션 검증기를 돌리고, 개인 계획이나 평가 흔적이 공개 저장소에 섞이지 않게 합니다.
+릴리즈 경계는 의도적으로 좁습니다. 배포 묶음을 만들고, 패키지와 설정 파일의 버전 정합성을 새 릴리즈 기준에서 확인하고, 개인 계획이나 평가 흔적이 공개 저장소에 섞이지 않게 합니다.
 
 ## 참고할 만한 설계 아이디어
 
@@ -272,7 +270,7 @@ Helmsman에서 역할은 장식이 아니라 필요한 긴장입니다.
 
 ## 현재 형태
 
-이 저장소에는 Helmsman 스킬, 역할 문서, Route/Verification 계약, Autopilot 기록, 검증용 스크립트, Wiki Memory 정리 흐름이 들어 있습니다. 현재 방향은 `docs/helmsman-protocol.md`와 `skills/helmsman-*`에 담겨 있습니다. 저장소에 남는 CLI 코드는 보조 도구일 뿐, 작업 흐름의 권한자가 아닙니다.
+이 저장소에는 Helmsman 스킬, 역할 문서, Route/Verification 계약, Autopilot 기록, 배포/상태 보조 스크립트, Wiki Memory 정리 흐름이 들어 있습니다. 현재 방향은 `docs/helmsman-protocol.md`와 `skills/helmsman-*`에 담겨 있습니다. 저장소에 남는 CLI 코드는 보조 도구일 뿐, 작업 흐름의 권한자가 아닙니다.
 
 ## Native Goal과 함께 쓰기
 
